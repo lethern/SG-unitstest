@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpha Unit Test Early Access Beta</title>
+  <style>
+    #main{
+		background-color: #f9f9fa;
+	}
+	.nodeBtn, .nodeSibling{
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+	.nodeBtn.disabled, .nodeSibling.disabled{
+		color: gray;
+	}
+    .nodeBtn{
+		cursor: pointer;
+		margin-left: 5px;
+		font-family: 'Courier New';
+		font-size: 16px;
+		background-color: #e6e6fa;
+	}
+	.nodeBtn.expanded{
+		background-color: #c3cdff;
+	}
+	.nodeSibling{
+		font-family: Consolas;
+		background-color: #e7d2ff;
+		min-width: 50px;
+		margin-left: 20px;
+		padding: 0 3px;
+		border: #af9ebb solid 1px;
+		border-top: none;
+		border-radius: 3px;
+		cursor: pointer;
+		display: inline-block;
+	}
+	
+	.chooseList{
+		display: inline-block;
+		padding-right: 10px;
+		vertical-align: top;
+	}
+	.selectedList{
+		display: inline-block;
+		padding-right: 10px;
+		vertical-align: top;
+	}
+	.selectedListElem, .selectedListSpecial{
+		font-family: Consolas;
+		background-color: #daf7f8;
+		min-width: 50px;
+		margin-left: 20px;
+		padding: 0 3px;
+		border: #af9ebb solid 1px;
+		border-top: none;
+		border-radius: 3px;
+		cursor: pointer;
+	}
+	.selectedListSpecial{
+		background-color: #dee3e3;
+		color: #595959;
+	}
+	
+	.detailsDiv{
+		display: inline-block;
+		padding-right: 10px;
+		vertical-align: top;
+	}
+	
+  </style>
+</head>
+<body>
+  <div id='main'></div>
+  <script src="units_data.js"></script>
+  <script src="buildings_data.js"></script>
+  <script src="units_utils.js"></script>
+  <script src="tree.js"></script>
+  <script src="build_order.js"></script>
+</body>
+</html>

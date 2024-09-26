@@ -10,3 +10,15 @@ function getFactionUnits(faction){
 	}
 	return gFactionUnitsCache[faction];
 }
+
+let gFactionBuildingsCache;
+function getFactionBuildings(faction){
+	if(!gFactionBuildingsCache) {
+		gFactionBuildingsCache = {'v':[], 'i':[], 'c':[]};
+		for(let it in gBuildings){
+			let faction = gBuildings[it].faction;
+			gFactionBuildingsCache[faction].push(it);
+		}
+	}
+	return gFactionBuildingsCache[faction];
+}

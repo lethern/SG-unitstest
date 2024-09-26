@@ -1,5 +1,6 @@
 const gUnits = {
 	"Argent": {
+		name: "Argent",
 		built: ["Creation Chamber"],
 		faction: "c",
 		type: "Ground",
@@ -39,6 +40,7 @@ const gUnits = {
 		}],
 	},
 	"Gaunt": {
+		name: "Gaunt",
 		built: ["Conclave"],
 		faction: "i",
 		type: "Ground",
@@ -215,19 +217,6 @@ const gUnits = {
 }
 	/*
 	"": {
-		built: "",
-		faction: "",
-		type: "",
-		luminite: ,
-		therium: ,
-		supply: ,
-		buildtime: ,
-		speed: ,
-		health: ,
-		extra_health: ,
-		armor_type: [],
-		armor: ,
-		energy: ,
 		attacks: [{
 			target: '',
 			damage: ,
