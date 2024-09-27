@@ -83,6 +83,28 @@
 		border-radius: 3px;
 		cursor: pointer;
 	}
+	.selectedListElem .name{
+		margin-left: 2px;
+	}
+	.selectedListElem .info{
+	}
+	.dragHandle{
+		background-color: #aeaeae;
+		margin: 1px;
+		padding: 0 5px;
+		display: inline-block;
+		font-size: 12.5px;
+		cursor: grab;
+		cursor: -moz-grab;
+		cursor: -webkit-grab;
+	}
+	.dragging-clone {
+		position: absolute;
+		pointer-events: none;
+		opacity: 0.8;
+		z-index: 1000;
+		transform: scale(1.05);
+	}
 	.selectedListSpecial{
 		background-color: #dee3e3;
 		color: #595959;

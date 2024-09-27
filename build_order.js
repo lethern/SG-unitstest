@@ -36,12 +36,94 @@ class BuildOrderUI {
 		
 		this.currentNodeDetails;
 	}
-	
+	renderSelectedList(div){
+		let container = this.selectedListDiv = createDiv(div, '', 'selectedList');
+		let buildOrder = this.parent.buildOrder;
+		let draggingClone = null;
+		let originalElement = null;
+		
+		this.selectedListDiv.addEventListener('dragstart', (e) => {
+			e.preventDefault();
+
+			let elem = e.target.parentElement;
+			if(!elem._BO) return;
+			originalElement = elem;
+			
+			const rect = elem.getBoundingClientRect();
+
+			draggingClone = elem.cloneNode(true);
+			draggingClone.classList.add('dragging-clone');
+			document.body.appendChild(draggingClone);
+
+			draggingClone.style.width = `${rect.width}px`;
+			draggingClone.style.left = `${rect.left}px`;
+			draggingClone.style.top = `${rect.top}px`;
+
+			elem.style.opacity = "0";
+
+			document.addEventListener('mousemove', onMouseMove);
+			document.addEventListener('mouseup', onMouseUp);
+		});
+
+		function getDragAfterElement(container, y) {
+			const draggableElements = [...container.childNodes];
+
+			return draggableElements.reduce((closest, child) => {
+				const box = child.getBoundingClientRect();
+				const offset = y - box.top - box.height / 2;
+				if (offset < 0 && offset > closest.offset) {
+					return { offset: offset, element: child };
+				} else {
+					return closest;
+				}
+			}, { offset: Number.NEGATIVE_INFINITY }).element;
+		}
+		function onMouseMove(e) {
+			if (draggingClone) {
+				draggingClone.style.left = `${e.pageX - draggingClone.offsetWidth / 2}px`;
+				draggingClone.style.top = `${e.pageY - draggingClone.offsetHeight / 2}px`;
+			}
+		}
+		function onMouseUp(e) {
+			document.removeEventListener('mousemove', onMouseMove);
+			document.removeEventListener('mouseup', onMouseUp);
+
+			if (draggingClone) {
+				const afterElement = getDragAfterElement(container, e.clientY);
+
+				if (afterElement == null) {
+					container.appendChild(originalElement);
+				} else {
+					container.insertBefore(originalElement, afterElement);
+				}
+				
+				if(originalElement != afterElement)
+					moveBOElem(originalElement._BO, afterElement? afterElement._BO:null);
+				
+				draggingClone.remove();
+				draggingClone = null;
+				originalElement.style.opacity = "1";
+				originalElement = null;
+			}
+		}
+		function moveBOElem(moved, where){
+			const elementIndex = buildOrder.indexOf(moved);
+
+			buildOrder.splice(elementIndex, 1);
+
+			if (where === null) {
+				buildOrder.push(moved);
+			} else {
+				const whereIndex = buildOrder.indexOf(where);
+				buildOrder.splice(whereIndex, 0, moved);
+			}
+		}
+	}
 	render(div, recent){
 		this.chooseListColumnDiv = createDiv(div, '', 'chooseListColumn');
 		this.chooseDetailsDiv = createDiv(this.chooseListColumnDiv, '', 'chooseDetails');
 		let chooseList = this.chooseListDiv = createDiv(this.chooseListColumnDiv, '', 'chooseList');
-		this.selectedListDiv = createDiv(div, '', 'selectedList');
+		this.renderSelectedList(div);
 		this.detailsDiv = createDiv(div, '', 'detailsDiv');
 		
 		let M = this.parent.mechanics;
@@ -108,19 +190,7 @@ class BuildOrderUI {
 				req.innerHTML = "Required: <span class='buildingName'>" 
 					+ unit.building_requirement.join("</span>, <span class='buildingName'>")
 					+ "</span>";
-			}
-			
-			/*
-			printString += name + "<br />";
-			printString += `Lu: ${unit.luminite || 0} &nbsp;Th: ${unit.therium || 0}`;
-			if(unit.supply) printString += `&nbsp; Supp: ${unit.supply}`
-			printString += "<br />Built in: "+unit.built.join(', ');
-			if(unit.buildtime) printString += `.&nbsp; Time: ${unit.buildtime}`
-			if(unit.building_requirement){
-				printString += "<br />Required: " + unit.building_requirement.join(', ');
-			}
-			this.chooseDetailsDiv.innerHTML = printString;
-			*/
+			}			
 		}
 		let building = gBuildings[name];
 		if(building){
@@ -181,7 +251,13 @@ class BuildOrderUI {
 
 	renderBuildOrderElem(elem){
 		if(!elem.special){
-			createDiv(this.selectedListDiv, elem.name, 'selectedListElem');
+			let div = createDiv(this.selectedListDiv, '', 'selectedListElem');
+			elem.div = div;
+			div._BO = elem;
+			let drag = createSpan(div, '☰', 'dragHandle');
+			drag.draggable= true;
+			createSpan(div, elem.name, 'name');
+			createSpan(div, '', 'info');
 		}else{
 			createDiv(this.selectedListDiv, elem.name, 'selectedListSpecial');
 		}

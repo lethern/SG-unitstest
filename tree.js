@@ -88,3 +88,11 @@ function createDiv(parent, text, css){
 	return elem;
 }
 
+function createSpan(parent, text, css){
+	let elem = document.createElement('span');
+	if(parent) parent.appendChild(elem);
+	elem.textContent = text;
+	if(css) elem.classList.add(css);
+	return elem;
+}
+
