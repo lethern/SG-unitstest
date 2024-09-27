@@ -33,32 +33,104 @@ class BuildOrderUI {
 		this.recentTreeNode = null;
 		this.unitsTreeNode = null;
 		this.buildingsTreeNode = null;
+		
+		this.currentNodeDetails;
 	}
 	
 	render(div, recent){
-		let chooseList = this.chooseListDiv = createDiv(div, '', 'chooseList');
+		this.chooseListColumnDiv = createDiv(div, '', 'chooseListColumn');
+		this.chooseDetailsDiv = createDiv(this.chooseListColumnDiv, '', 'chooseDetails');
+		let chooseList = this.chooseListDiv = createDiv(this.chooseListColumnDiv, '', 'chooseList');
 		this.selectedListDiv = createDiv(div, '', 'selectedList');
 		this.detailsDiv = createDiv(div, '', 'detailsDiv');
 		
 		let M = this.parent.mechanics;
 		let units = M.units;
 		let buildings = M.buildings;
+		let specials = this.getSpecialNodes();
 		
 		units = [...units].sort();
 		buildings = [...buildings].sort();
 		
 		this.tree = new Tree();
 		let data = [{name:'recent', list: recent},
-			{name: 'special', list: [{name: 'label', onclick: (e) => this.treeSpecialClick(e)}]},
-			{name: 'units', list: units.map(u => ({name: u, enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
-			{name: 'buildings', list: buildings.map(u => ({name: u, enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
+			{name: 'special', list: specials.map(u => ({name: u, type: "special", onclick: (e) => this.treeSpecialClick(e)}))},
+			{name: 'units', list: units.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
+			{name: 'buildings', list: buildings.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
 			];
 		
 		this.tree.render(chooseList, data);
 		
+		this.addHoverDetails(chooseList);
+		
 		this.recentTreeNode = this.tree.nodes[0];
 		this.unitsTreeNode = this.tree.nodes[2];
 		this.buildingsTreeNode = this.tree.nodes[3];
+	}
+	
+	addHoverDetails(div){
+		div.addEventListener('mouseover', (e)=>this.onHoverDetails(e));
+	}
+	
+	onHoverDetails(event){
+		let node = null;
+		let domElem = event.target;
+		while(!node && domElem){
+			node = domElem._node;
+			domElem = domElem.parentElement;
+		}
+		if(!node || !node.data || node.data.type != "node") return;
+		if(node != this.currentNodeDetails){
+			this.currentNodeDetails = node;
+			if(!node.data.name) return;
+			this.printChooseDetails(node);
+		}
+	}
+	
+	printChooseDetails(node){
+		let printString = '';
+		let name = node.data.name;
+		
+		let unit = gUnits[name];
+		if(unit){
+			this.chooseDetailsDiv.innerHTML = '';
+			createDiv(this.chooseDetailsDiv, name, 'detailsName');
+			let cost = createDiv(this.chooseDetailsDiv);
+			cost.innerHTML = `Lu: <span class='highlight'>${unit.luminite || 0}</span>&nbsp;  Th: <span class='highlight'>${unit.therium || 0}</span>`;
+			if(unit.supply) cost.innerHTML += `&nbsp; Supp: <span class='highlight'>${unit.supply}</span>`;
+			//, 
+			let buildin = createDiv(this.chooseDetailsDiv);
+			buildin.innerHTML = "Built in: <span class='buildingName'>"+ unit.built.join('</span>, <span class="buildingName">') 
+				+ "</span>"
+				+ (unit.buildtime ? `  Time: <span class='highlight'>${unit.buildtime}</span>` : '');
+			if(unit.building_requirement){
+				let req = createDiv(this.chooseDetailsDiv, '', 'requiredDetails');
+				req.innerHTML = "Required: <span class='buildingName'>" 
+					+ unit.building_requirement.join("</span>, <span class='buildingName'>")
+					+ "</span>";
+			}
+			
+			/*
+			printString += name + "<br />";
+			printString += `Lu: ${unit.luminite || 0} &nbsp;Th: ${unit.therium || 0}`;
+			if(unit.supply) printString += `&nbsp; Supp: ${unit.supply}`
+			printString += "<br />Built in: "+unit.built.join(', ');
+			if(unit.buildtime) printString += `.&nbsp; Time: ${unit.buildtime}`
+			if(unit.building_requirement){
+				printString += "<br />Required: " + unit.building_requirement.join(', ');
+			}
+			this.chooseDetailsDiv.innerHTML = printString;
+			*/
+		}
+		let building = gBuildings[name];
+		if(building){
+		}
+		
+	}
+	
+	
+	getSpecialNodes(){
+		return ['label', 'transfer worker'];
 	}
 	
 	treeClick(elem){
@@ -81,6 +153,11 @@ class BuildOrderUI {
 	treeSpecialClick(elem){
 		switch(elem.name){
 			case 'label': {
+				let newBOElem = {name: 'x', special: 'label'};
+				this.parent.addBuildOrder(newBOElem);
+				this.renderBuildOrderElem(newBOElem);
+			}break;
+			case 'transfer': {
 				let newBOElem = {name: 'x', special: 'label'};
 				this.parent.addBuildOrder(newBOElem);
 				this.renderBuildOrderElem(newBOElem);

@@ -10,7 +10,7 @@ class Tree{
 	}
 	
 	createNode(data){
-		let node = {};
+		let node = { };
 		node.rowDiv = createDiv(this.mainDiv);
 		node.data = data;
 		node.btn = createBtn(node.rowDiv, Tree.printNodeName(data.name), 'nodeBtn', nodeBtnClick);
@@ -38,7 +38,7 @@ class Tree{
 	}
 	
 	createSiblingNode(data, node){
-		let sibling = {};
+		let sibling = { };
 		node.nodes.push(sibling);
 		sibling.rowDiv = createDiv(node.content);
 		sibling.data = data;
