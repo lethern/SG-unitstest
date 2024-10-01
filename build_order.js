@@ -137,10 +137,12 @@ class BuildOrderUI {
 		
 		this.tree = new Tree();
 		let data = [{name:'recent', list: recent},
-			{name: 'special', list: specials.map(u => ({name: u, type: "special", onclick: (e) => this.treeSpecialClick(e)}))},
+			{name: 'special', list: specials.map(u => ({name: u, type: "special", onclick: (e) => this.treeSpecialClick(e)}))}];
+		this.addFactionBtn(data);
+		data.push(
 			{name: 'units', list: units.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
 			{name: 'buildings', list: buildings.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
-			];
+			);
 		
 		this.tree.render(chooseList, data);
 		
@@ -149,6 +151,21 @@ class BuildOrderUI {
 		this.recentTreeNode = this.tree.nodes[0];
 		this.unitsTreeNode = this.tree.nodes[2];
 		this.buildingsTreeNode = this.tree.nodes[3];
+	}
+	
+	addFactionBtn(data){
+		let faction = this.parent.mechanics.faction;
+		switch(faction){
+			case 'v':
+				data.push({ name: 'vanguard', list: [
+					{name: "Salvage", type: "node", onclick: (e) => this.treeClick(e) },
+					{name: "B.O.B Overcharge", type: "node", onclick: (e) => this.treeClick(e) },
+					{name: "Sensor Drone", type: "node", onclick: (e) => this.treeClick(e) },
+					{name: "Shields Up!", type: "node", onclick: (e) => this.treeClick(e) },
+					{name: "Promote", type: "node", onclick: (e) => this.treeClick(e) },
+				]});
+			break;
+		}
 	}
 	
 	addHoverDetails(div){
@@ -295,6 +312,7 @@ class BuildOrderMechanics {
 	}
 	
 	initFaction(faction){
+		this.faction = faction;
 		this.units = getFactionUnits(faction);
 		this.buildings = getFactionBuildings(faction);
 		this.initBasicUnlock(faction);

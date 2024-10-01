@@ -17,7 +17,9 @@ function getFactionBuildings(faction){
 		gFactionBuildingsCache = {'v':[], 'i':[], 'c':[]};
 		for(let it in gBuildings){
 			let faction = gBuildings[it].faction;
-			gFactionBuildingsCache[faction].push(it);
+			if(faction){
+				gFactionBuildingsCache[faction].push(it);
+			}
 		}
 	}
 	return gFactionBuildingsCache[faction];
