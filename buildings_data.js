@@ -11,6 +11,10 @@ const gBuildings = {
 		health: 1000,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor:15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Mech Bay": {
 		name: "Mech Bay",
@@ -24,6 +28,10 @@ const gBuildings = {
 		health: 1200,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor: 15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Barracks": {
 		name: "Barracks",
@@ -36,6 +44,10 @@ const gBuildings = {
 		building_requirement: ["Command Post"],
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor:15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Biokinetics Lab": {
 		name: "Biokinetics Lab",
@@ -48,6 +60,10 @@ const gBuildings = {
 		health: 800,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor:15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Machine Lab": {
 		name: "Machine Lab",
@@ -61,6 +77,10 @@ const gBuildings = {
 		health: 800,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor:15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Command Post": {
 		name: "Command Post",
@@ -115,6 +135,10 @@ const gBuildings = {
 		health: 400,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor: 5,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Scrapyard": {
 		name: "Scrapyard",
@@ -127,6 +151,10 @@ const gBuildings = {
 		health: 800,
 		armor_type: ["Heavy", "Mechanical", "Structure"],
 		armor: 15,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
 	"Solar Habitat": {
 		name: "Solar Habitat",
@@ -143,6 +171,9 @@ const gBuildings = {
 		abilities: [{
 			name: "Solar Charge",
 			desc: "Increase various aspects of a nearby structure by 25%: Attack Speed, Production Speed, Heal Rate, Energy Regeneration, Vision Range",
+		}, {
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 	},
 	"Rampart": {
@@ -166,6 +197,9 @@ const gBuildings = {
 			cooldown: 1,
 			duration: 20,
 			desc: "Increases the armor of a nearby friendly structure by 200 for 20 seconds."
+		}, {
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 	},
 	"Sentry Post": {
@@ -186,8 +220,11 @@ const gBuildings = {
 			speed: 1.6,
 			range: 10,
 		}],
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 	},
-	
 	"Repair-O-Matic": {
 		name: "Repair-O-Matic",
 		health: 450,
@@ -196,6 +233,9 @@ const gBuildings = {
 			name: "Repair Beam",
 			range: 8,
 			desc: "Repairs a nearby target friendly mechanical unit or structure for 30 health per second. Right-click to enable/disable autocasting."
+		}, {
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 		extra_info: [{
 			desc: "Created by loading a BOB into a Sentry Post"
@@ -212,6 +252,10 @@ const gBuildings = {
 			bonus: [ {bonus: "Light", bonus_damage: 8 }],
 			speed: 1.5,
 			range: 7,
+		}],
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 		traits: [{
 			name: "Bouncing Blades",
@@ -230,6 +274,9 @@ const gBuildings = {
 			cooldown: 60,
 			duration: 10,
 			desc: "Greatly incrases the Sensor Array's vision radius for 10 seconds."
+		}, {
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 		traits: [{
 			name: "Enhanced Pupper Radar",
@@ -253,6 +300,10 @@ const gBuildings = {
 			speed: 0.8,
 			range: 12,
 		}],
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 		traits: [{
 			name: "Fragmented Shrapnel",
 			desc: "This structure's attacks deal area damage in a circle."
@@ -265,6 +316,10 @@ const gBuildings = {
 		name: "Med Station",
 		health: 450,
 		armor: 20,
+		abilities: [{
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
+		}],
 		traits: [{
 			name: "Rapid Regen Aura",
 			desc: "Nearby friendly biological units are healed for 4 health per second. Out-of-combat units are healed for a bonus 4 health per second."
@@ -281,6 +336,9 @@ const gBuildings = {
 			name: "Quickstick Bomb",
 			cooldown: 8,
 			desc: "Throws a bomb at a target ground unit or location. The bomb instantly explodes, dealing 50 damage to and leaving behind goop that slows all ground units in an area. Right-click to enable/disable autocasting.",
+		}, {
+			name: "Salvage",
+			desc: "Recovers 100% of this structure's resource cost.",
 		}],
 		traits: [{
 			name: "Stealthed",
