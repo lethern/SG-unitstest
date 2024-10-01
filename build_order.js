@@ -56,8 +56,9 @@ class BuildOrderUI {
 			document.body.appendChild(draggingClone);
 
 			draggingClone.style.width = `${rect.width}px`;
-			draggingClone.style.left = `${rect.left}px`;
-			draggingClone.style.top = `${rect.top}px`;
+			
+			draggingClone.style.left = `${e.pageX-30}px`;
+			draggingClone.style.top = `${e.pageY - draggingClone.offsetHeight / 2}px`;
 
 			elem.style.opacity = "0";
 
@@ -80,7 +81,7 @@ class BuildOrderUI {
 		}
 		function onMouseMove(e) {
 			if (draggingClone) {
-				draggingClone.style.left = `${e.pageX - draggingClone.offsetWidth / 2}px`;
+				draggingClone.style.left = `${e.pageX - 30}px`;
 				draggingClone.style.top = `${e.pageY - draggingClone.offsetHeight / 2}px`;
 			}
 		}
@@ -174,6 +175,7 @@ class BuildOrderUI {
 		let name = node.data.name;
 		
 		let unit = gUnits[name];
+		if(!unit) unit = gBuildings[name];
 		if(unit){
 			this.chooseDetailsDiv.innerHTML = '';
 			createDiv(this.chooseDetailsDiv, name, 'detailsName');
@@ -181,10 +183,15 @@ class BuildOrderUI {
 			cost.innerHTML = `Lu: <span class='highlight'>${unit.luminite || 0}</span>&nbsp;  Th: <span class='highlight'>${unit.therium || 0}</span>`;
 			if(unit.supply) cost.innerHTML += `&nbsp; Supp: <span class='highlight'>${unit.supply}</span>`;
 			//, 
-			let buildin = createDiv(this.chooseDetailsDiv);
-			buildin.innerHTML = "Built in: <span class='buildingName'>"+ unit.built.join('</span>, <span class="buildingName">') 
-				+ "</span>"
-				+ (unit.buildtime ? `  Time: <span class='highlight'>${unit.buildtime}</span>` : '');
+			if(unit.built){
+				let buildin = createDiv(this.chooseDetailsDiv);
+				buildin.innerHTML = "Built in: <span class='buildingName'>"+ unit.built.join('</span>, <span class="buildingName">') 
+					+ "</span>";
+					+ (unit.buildtime ? `  Time: <span class='highlight'>${unit.buildtime}</span>` : '');
+			}
+			else if(unit.buildtime){
+				cost.innerHTML += `&nbsp; Time: <span class='highlight'>${unit.buildtime}</span>`;
+			}
 			if(unit.building_requirement){
 				let req = createDiv(this.chooseDetailsDiv, '', 'requiredDetails');
 				req.innerHTML = "Required: <span class='buildingName'>" 
@@ -192,9 +199,23 @@ class BuildOrderUI {
 					+ "</span>";
 			}			
 		}
+		/*
 		let building = gBuildings[name];
 		if(building){
+			this.chooseDetailsDiv.innerHTML = '';
+			createDiv(this.chooseDetailsDiv, name, 'detailsName');
+			let cost = createDiv(this.chooseDetailsDiv);
+			cost.innerHTML = `Lu: <span class='highlight'>${unit.luminite || 0}</span>&nbsp;  Th: <span class='highlight'>${unit.therium || 0}</span>`;
+			if(unit.supply) cost.innerHTML += `&nbsp; Supp: <span class='highlight'>${unit.supply}</span>`;
+			//, 
+			if(unit.building_requirement){
+				let req = createDiv(this.chooseDetailsDiv, '', 'requiredDetails');
+				req.innerHTML = "Required: <span class='buildingName'>" 
+					+ unit.building_requirement.join("</span>, <span class='buildingName'>")
+					+ "</span>";
+			}			
 		}
+		*/
 		
 	}
 	
