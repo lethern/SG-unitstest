@@ -1,6 +1,6 @@
 const gUnits = {
 	"Argent": {
-		name: "Argent",
+		displayName: "Argent",
 		built: ["Creation Chamber"],
 		faction: "c",
 		type: "Ground",
@@ -14,7 +14,7 @@ const gUnits = {
 		armor: 5,
 		energy: 30,
 		attacks: [{
-			name: 'Oscillamata',
+			displayName: 'Oscillamata',
 			target: ['Air', 'Ground'],
 			damage: 8,
 			speed: 1.5,
@@ -22,25 +22,25 @@ const gUnits = {
 			range: 6,
 		}],
 		abilities: [{
-			name: 'High Energy',
+			displayName: 'High Energy',
 			energy: 10,
 			desc: "Imbues this unit's weapon, allowing it to deal 100% increased damage. Right-click to enable/disable autocasting.",
 		}],
 		traits: [{
-			name: 'Photo-Restoration',
+			displayName: 'Photo-Restoration',
 			desc: "When this unit is out of combat, it regenerates 2 energy per second.",
 		}, {
-			name: 'Longshot Module',
+			displayName: 'Longshot Module',
 			req: ['Research Photo-Capacitors', 'Research Longshot Module'],
 			desc: "Increases the range of this unit's charged weapon by +3.",
 		}, {
-			name: 'Photo-Capacitors',
+			displayName: 'Photo-Capacitors',
 			req: ['Research Photo-Capacitors'],
 			desc: "+20 starting and maximum energy.",
 		}],
 	},
 	"Gaunt": {
-		name: "Gaunt",
+		displayName: "Gaunt",
 		built: ["Conclave"],
 		faction: "i",
 		type: "Ground",
@@ -56,14 +56,14 @@ const gUnits = {
 		armor: 0,
 		energy: 0,
 		attacks: [{
-			name: 'Flying Bone Axes',
+			displayName: 'Flying Bone Axes',
 			target: ['Air'],
 			damage: 8,
 			speed: 1.3,
 			bonus: [ { bonus: 'Light', bonus_damage: 4 }],
 			range: 6,
 		}, {
-			name: 'Bone Axes',
+			displayName: 'Bone Axes',
 			target: ['Ground'],
 			damage: 8,
 			speed: 1.3,
@@ -71,29 +71,29 @@ const gUnits = {
 			range: 5,
 		}],
 		extra_info: [{
-			name: 'Spawns in pair',
+			displayName: 'Spawns in pair',
 			desc: "Charge makes 2 gaunts",
 		}, {
-			name: 'Bounces',
+			displayName: 'Bounces',
 			desc: "Attacks bounce to two nearby targets, dealing 2 (+1 vs Light) damage.",
 		}],
 		abilities: [],
 		traits: [{
-			name: "Bouncing Bone Axes",
+			displayName: "Bouncing Bone Axes",
 			range: 3.5,
 			desc: "On-Hit: Attacks bounce twice to nearby enemies, dealing 25% of primary damage.",
 		}, {
-			name: 'Plague Axe',
+			displayName: 'Plague Axe',
 			req: ['Research Plague Axe'],
 			desc: "On-Hit: Attacked units within Shroud are infected with Infest.",
 		}, {
-			name: "Reaper's Rush",
+			displayName: "Reaper's Rush",
 			req: ["Research Reaper's Rush"],
 			desc: "30% increased movement speed.",
 		}],
 	},
 	"Atlas": {
-		name: 'Atlas',
+		displayName: 'Atlas',
 		built: ['Mech Bay'],
 		faction: 'v',
 		subfaction: ['1v1', 'Blockade', 'Amara'],
@@ -112,13 +112,13 @@ const gUnits = {
 		veterancyspecialbonus: ['1 (Deployed) Range', '1 (Deployed) Range', '1 (Deployed) Range'],
 		veterancyxp: [1200, 3000, 5400],
 		attacks: [{
-			name: 'L.I.G.H.T. Guns',
+			displayName: 'L.I.G.H.T. Guns',
 			target: ['Ground'],
 			damage: 15,
 			speed: 0.5,
 			range: 4,
 		}, {
-			name: 'BFG',
+			displayName: 'BFG',
 			target: ['Ground'],
 			damage: 80,
 			speed: 5,
@@ -126,27 +126,27 @@ const gUnits = {
 			range: 16,
 		}],
 		abilities: [{
-			name: 'Deploy BFG',
+			displayName: 'Deploy BFG',
 			cooldown: 1.5,
 			desc: "Deploy: Greatly increases the range of the Atlas' attack. Attacks Ground",
 		}, {
-			name: 'Pack It Up',
+			displayName: 'Pack It Up',
 			cooldown: 1.167,
 			desc: "Mobilize: Greatly reduce the range of the Atlas' attack. Attacks Ground",
 		}],
 		traits: [{
-			name: 'Purification Ordnance',
+			displayName: 'Purification Ordnance',
 			req: ['Deploy BFG'],
 			desc: "This unit's attacks deal area damage in a circle.",
 		}, {
-			name: 'Plasma Arc Infusion',
+			displayName: 'Plasma Arc Infusion',
 			duration: 5,
 			req: ['Research Plasma Arc Infusion'],
 			desc: "On-Hit: Lights the ground on fire, dealing 20 damage per second to all units standing in the fire for 5 seconds.",
 		}],
 	},
 	"BOB": {
-		name: 'B.O.B.',
+		displayName: 'B.O.B.',
 		built: ['Command Post', 'Central Command', 'High Command'],
 		faction: 'v',
 		subfaction: ['1v1', 'Blockade', 'Amara'],
@@ -164,19 +164,19 @@ const gUnits = {
 		veterancyspecialbonus: ['20% Construction Speed', '20% Construction Speed', '20% Construction Speed'],
 		veterancyxp: [200, 500, 900],
 		attacks: [{
-			name: 'Servo-Fists',
+			displayName: 'Servo-Fists',
 			target: ['Ground'],
 			damage: 8,
 			speed: 1.5,
 			range: 0.1,
 		}],
 		abilities: [{
-			name: 'Repair',
+			displayName: 'Repair',
 			desc: "Restores health to mechanical units and structures.",
 		}],
 	},
 	"Lancer": {
-		name: 'Lancer',
+		displayName: 'Lancer',
 		built: ['Barracks'],
 		faction: 'v',
 		subfaction: ['1v1'],
@@ -194,7 +194,7 @@ const gUnits = {
 		veterancyspecialbonus: ['5 Armor', '5 Armor', '5 Armor'],
 		veterancyxp: [400, 1000, 1800],
 		attacks: [{
-			name: 'Foe Splitter Blade',
+			displayName: 'Foe Splitter Blade',
 			target: ['Ground'],
 			damage: 10,
 			speed: 1.5,
@@ -202,21 +202,21 @@ const gUnits = {
 			range: 1.5,
 		}],
 		traits: [{
-			name: 'Vanguard Fortified Impaler',
+			displayName: 'Vanguard Fortified Impaler',
 			desc: "This units attacks deal area damage in a line.",
 		},{
-			name: 'Vanguard Kinetic Redirection',
+			displayName: 'Vanguard Kinetic Redirection',
 			duration: 5,
 			req: ['Research Kinetic Redirection'],
 			desc: "On-Damaged: Increases this unit's attack and movement speed by 5% for 5 seconds. Max 50%.",
 		},{
-			name: 'Vanguard Mitigative Guard',
+			displayName: 'Vanguard Mitigative Guard',
 			req: ['Research Mitigative Guard'],
 			desc: "On-Damaged: Damage reduced by 2.",
 		}],
 	},
 	"SCOUT": {
-		name: "S.C.O.U.T.",
+		displayName: "S.C.O.U.T.",
 		built: ["Barracks"],
 		faction: "v",
 		subfaction: ["1v1", "Amara"],
@@ -234,7 +234,7 @@ const gUnits = {
 		veterancyspecialbonus: ["2 Vision", "2 Vision", "2 Vision"],
 		veterancyxp: [200, 400, 900],
 		attacks: [{
-			name: "Metallic Cruncher",
+			displayName: "Metallic Cruncher",
 			target: ["Ground"],
 			damage: 5,
 			speed: 1.4,
@@ -242,30 +242,30 @@ const gUnits = {
 			range: 0.1
 		}],
 		abilities: [{
-					name: "On The Hunt",
-					cooldown: 40,
-					duration: 10,
-					desc: "Greatly increases the S.C.O.U.T.'s vision radius for 10 seconds."
-				},{
-					name: "Pounce",
-					cooldown: 30,
-					req: ["Research Pounce"],
-					desc: "Intercepts a nearby enemy unit, increasing this unit's movement speed by 25% and dealing 15 (+15 vs Light) bonus damage on impact."
+			displayName: "On The Hunt",
+			cooldown: 40,
+			duration: 10,
+			desc: "Greatly increases the S.C.O.U.T.'s vision radius for 10 seconds."
+		},{
+			displayName: "Pounce",
+			cooldown: 30,
+			req: ["Research Pounce"],
+			desc: "Intercepts a nearby enemy unit, increasing this unit's movement speed by 25% and dealing 15 (+15 vs Light) bonus damage on impact."
 		}],
 		traits: [{
-			name: "Pupper Sense",
+			displayName: "Pupper Sense",
 			desc: "This unit can sense nearby enemies under the fog of war."
 		},{
-			name: "Vorillium Claws",
+			displayName: "Vorillium Claws",
 			req: ["Research Vorillium Claws"],
 			desc: "Increased damage against Light units by +8."
 		},{
-			name: "Detector",
+			displayName: "Detector",
 			desc: "Detects stealthed enemies."
 		}]
 	},
 	"Exo": {
-		name: "Exo",
+		displayName: "Exo",
 		built: ["Barracks"],
 		faction: "v",
 		subfaction: ["1v1", "Amara"],
@@ -284,7 +284,7 @@ const gUnits = {
 		veterancyspecialbonus: ["0.5 Range", "0.5 Range", "0.5 Range" ],
 		veterancyxp: [400, 1000, 1800],
 		attacks: [{
-			name: "BR-15 Rifle",
+			displayName: "BR-15 Rifle",
 			target: ["Air", "Ground"],
 			damage: 12,
 			speed: 1,
@@ -292,17 +292,17 @@ const gUnits = {
 			range: 7,
 		}],
 		traits: [{
-			name: "Quickdraw Hustle",
+			displayName: "Quickdraw Hustle",
 			req: ["Research Quickdraw Hustle"],
 			desc: "On-Attack: Gains 25% bonus movement speed for 2 seconds.",
 		}, {
-			name: "Survival Protocol",
+			displayName: "Survival Protocol",
 			req: ["Research Survival Protocol"],
 			desc: "This unit can negate fatal damage once every 120 seconds.",
 		}],
 	},
 	"MedTech": {
-		name: "MedTech",
+		displayName: "MedTech",
 		built: ["Barracks"],
 		faction: "v",
 		subfaction: ["1v1", "Amara"],
@@ -324,34 +324,34 @@ const gUnits = {
 		veterancyspecialbonus: ["0.25 Energy regeneration", "0.25 Energy regeneration", "0.25 Energy regeneration"],
 		veterancyxp: [600, 1500, 2700],
 		attacks: [{
-			name: "Pulse Gauntlets",
+			displayName: "Pulse Gauntlets",
 			target: ["Air", "Ground"],
 			damage: 5,
 			speed: 2,
 			range: 8.5,
 		}],
 		abilities: [{
-			name: "Med Patch",
+			displayName: "Med Patch",
 			energy: 5,
 			casting_time: 0.5,
 			cooldown: 2,
 			duration: 2,
 			desc: "Instantly heals a target biological units for 20 health and additional 20 health over 2 seconds. Grants it 25 bonus armor for the duration.",
 		}, {
-			name: "Nanoswarm",
+			displayName: "Nanoswarm",
 			energy: 50,
 			duration: 20,
 			req: ["Research Medtech Adept Training"],
 			desc: "Unleashes a swarm of nanobots onto a target unit. If the target is friendly, nearby mechanical units are healed for 20 health per second over 20 seconds. If the target is an enemy, nearby enemy mechanical units are damaged for 10 health per second. Right-click to enable autocasting. Automatically casts on damaged friendly mechanical units.",
 		}, {
-			name: "System Shock",
+			displayName: "System Shock",
 			energy: 50,
 			req: ["Research Medtech Master Training"],
 			desc: "Removes all positive buffs from enemy units in the target area. Removes all negative debuffs from friendly units in the area and grants them bonus movement speed",
 		}],
 	},
 	"Hedgehog": {
-		name: "Hedgehog",
+		displayName: "Hedgehog",
 		built: ["Mech Bay"],
 		faction: "v",
 		subfaction: ["1v1", "Blockade", "Amara"],
@@ -369,43 +369,43 @@ const gUnits = {
 		veterancyspecialbonus: ["0.5 Range / 1 Range (Deployed)", "0.5 Range / 1 Range (Deployed)", "0.5 Range / 1 Range (Deployed)"],
 		veterancyxp: [600, 1500, 2700],
 		attacks: [{
-			name: "UAM-22 Quill Rockets",
+			displayName: "UAM-22 Quill Rockets",
 			target: ["Ground"],
 			damage: 10,
 			bonus: [ {bonus: "Heavy", bonus_damage: 5 }],
 			speed: 0.3,
 			range: 5
 		}, {
-			name: "UAM-22 Quill Rockets",
+			displayName: "UAM-22 Quill Rockets",
 			target: ["Air"],
 			damage: 10,
 			speed: 0.3,
 			range: 10,
 		}],
 		abilities: [{
-			name: "Hunker Down",
+			displayName: "Hunker Down",
 			cooldown: 2,
 			desc: "Deploy: Enables the Hedgehog's anti-air attack and decreases its ammo recharge time. Disables its anti-ground attack. Attacks Air",
 		},{
-			name: "Spine Up",
+			displayName: "Spine Up",
 			cooldown: 2,
 			desc: "Mobilize: Enables the Hedgehog's anti-ground attack and increases its ammo recharge time. Disables its anti-air attack. Attacks Ground",
 		}],
 		traits: [{
-			name: "Transonic Boosters",
+			displayName: "Transonic Boosters",
 			req: ["Research Transonic Rockets"],
 			desc: "+2/+4 weapon range.",
 		},{
-			name: "Vanguard Rocket Ammo",
+			displayName: "Vanguard Rocket Ammo",
 			desc: "This unit uses ammo to attack and slowly recharges its ammo over time.",
 		}],
 		extra_info: [{
-			name: "Ammo recharge",
+			displayName: "Ammo recharge",
 			desc: "Mobilized ammo recharge time: 1 second, deployed: 0.5 seconds."
 		}],
 	},
 	"Vulcan": {
-		name: "Vulcan",
+		displayName: "Vulcan",
 		built: ["Mech Bay"],
 		faction: "v",
 		subfaction: ["1v1", "Blockade"],
@@ -424,7 +424,7 @@ const gUnits = {
 		veterancyspecialbonus: ["5% Attack Speed", "5% Attack Speed", "5% Attack Speed"],
 		veterancyxp: [1000, 2500, 4500],
 		attacks: [{
-			name: "X134 Minigun",
+			displayName: "X134 Minigun",
 			target: ["Ground"],
 			damage: 3,
 			speed: 0.25,
@@ -432,22 +432,22 @@ const gUnits = {
 			range: 8,
 		}],
 		abilities: [{
-			name: "Jump Jets",
+			displayName: "Jump Jets",
 			cooldown: 15,
 			duration: 3,
 			range: 8,
 			desc: "Launches this units towards a target location, stopping at and stunning the first enemy unit it impacts for 3 seconds. Destroy trees in its path."
 		}],
 		traits: [{
-			name: "Vulcan Barrage",
+			displayName: "Vulcan Barrage",
 			desc: "This unit's attacks deal area damage in a line and increase in power over time."
 		}, {
-			name: "Peak Performance",
+			displayName: "Peak Performance",
 			req: ["Research Peak Performance"],
 			desc: "After using Jump Jets, this unit will deal max damage immediately."
 		}],
 		extra_info: [{
-			name: "Attack winding up",
+			displayName: "Attack winding up",
 			desc: "Phase 1 damage: 3 (+3 vs Light), Phase 2 damage: 4 (+4 vs Light), Phase 3 damage: 6 (+6 vs Light). Loses windup after 1second of not attacking."
 		}]
 	},
@@ -461,12 +461,12 @@ const gUnits = {
 			range: ,
 		}],
 		abilities: [{
-			name: "",
+			displayName: "",
 			energy: ,
 			desc: "",
 		}],
 		traits: [{
-			name: "",
+			displayName: "",
 			desc: "",
 		}],
 	}

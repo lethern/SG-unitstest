@@ -24,3 +24,17 @@ function getFactionBuildings(faction){
 	}
 	return gFactionBuildingsCache[faction];
 }
+
+initBuildings();
+function initBuildings(){
+	for(let it in gBuildings){
+		let b = gBuildings[it];
+		if(b.upgrades_to){
+			for(let up_to of b.upgrades_to){
+				let _b = gBuildings[up_to];
+				if(!_b.building_requirement_from) _b.building_requirement_from = [];
+				_b.building_requirement_from.push(it);
+			}
+		}
+	}
+}

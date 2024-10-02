@@ -25,8 +25,12 @@ class BuildOrder {
 class BuildOrderUI {
 	constructor(parent){
 		this.parent = parent;
+		this.chooseListColumnDiv = null;
 		this.chooseListDiv = null;
+		this.chooseDetailsDiv = null;
+		this.selectedListColumnDiv = null;
 		this.selectedListDiv = null;
+		this.selectedListDetailsDiv = null;
 		this.detailsDiv = null;
 		this.tree = null;
 		
@@ -36,8 +40,75 @@ class BuildOrderUI {
 		
 		this.currentNodeDetails;
 	}
+	/*
+	Tree Node data:
+		name
+		type: "node" | special
+		unit: true|false
+		building: true|false
+		enabled: true|false
+		onclick
+	*/
+	
 	renderSelectedList(div){
-		let container = this.selectedListDiv = createDiv(div, '', 'selectedList');
+		let wrap = this.selectedListColumnDiv = createDiv(div, '', 'selectedListColumn');
+		this.selectedListDetailsDiv = createDiv(wrap, '', 'selectedListDetails');
+		this.selectedListDiv = createDiv(wrap, '', 'selectedList');
+		this.selectedListDragAndDrop();
+		this.selectedListDiv.addEventListener('click', (e)=>{
+			if(e.target.draggable) return;
+			let node = e.target.closest('.selectedListElem, .selectedListSpecial');
+			this.renderSelectedOnClick(node);
+		});
+	}
+	
+	renderSelectedOnClick(node){
+		if(node._BO){
+			this.selectedListDetailsDiv.innerHTML = '';
+			createDiv(this.selectedListDetailsDiv, node._BO.name, 'bold');
+			
+			if(node._BO.data.building) this.renderSelectedOnClick_Building(node, this.selectedListDetailsDiv);
+			
+		}else{
+			// special
+			this.selectedListDetailsDiv.textContent = node.textContent;
+		}
+	}
+	
+	renderSelectedOnClick_Building(node, div){
+		let faction = this.parent.mechanics.faction;
+		switch(faction){
+			case 'v':
+				if(!node._BO.build_with_n_workers) node._BO.build_with_n_workers = 1;
+				let row = createDiv(this.selectedListDetailsDiv);
+				createSpan(row, "Build with N workers:");
+				let inp = createInput(row, node._BO.build_with_n_workers, 'detailsSmallInput');
+				inp.addEventListener('input', (e)=>{ let input = e.target; if(isNaN(input.value)) input.value=1; else node._BO.build_with_n_workers = input.value});
+				
+				if(!node._BO.build_distance) node._BO.build_distance = 1;
+				row = createDiv(this.selectedListDetailsDiv);
+				createSpan(row, "Build distance:");
+				inp = createInput(row, node._BO.build_distance, 'detailsSmallInput');
+				inp.addEventListener('input', (e)=>{ let input = e.target; if(isNaN(input.value)) input.value=1; else node._BO.build_distance = input.value});
+				
+				if(node._BO.use_overcharged === undefined) node._BO.use_overcharged = false;
+				row = createDiv(this.selectedListDetailsDiv);
+				createSpan(row, "Use Overcharged BOBs:");
+				inp = createCheckbox(row, node._BO.use_overcharged, 'detailsSmallInput');
+				inp.addEventListener('change', (e)=>{ node._BO.use_overcharged = e.target.checked; });
+				
+				if(node._BO.use_veterancy === undefined) node._BO.use_overcharged = false;
+				row = createDiv(this.selectedListDetailsDiv);
+				createSpan(row, "Use Veterancy BOBs:");
+				inp = createCheckbox(row, node._BO.use_veterancy, 'detailsSmallInput');
+				inp.addEventListener('change', (e)=>{ node._BO.use_veterancy = e.target.checked; });
+				
+			break;
+		}
+	}
+	
+	selectedListDragAndDrop(){
+		let container = this.selectedListDiv;
 		let buildOrder = this.parent.buildOrder;
 		let draggingClone = null;
 		let originalElement = null;
@@ -120,6 +191,7 @@ class BuildOrderUI {
 			}
 		}
 	}
+	
 	render(div, recent){
 		this.chooseListColumnDiv = createDiv(div, '', 'chooseListColumn');
 		this.chooseDetailsDiv = createDiv(this.chooseListColumnDiv, '', 'chooseDetails');
@@ -140,17 +212,19 @@ class BuildOrderUI {
 			{name: 'special', list: specials.map(u => ({name: u, type: "special", onclick: (e) => this.treeSpecialClick(e)}))}];
 		this.addFactionBtn(data);
 		data.push(
-			{name: 'units', list: units.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
-			{name: 'buildings', list: buildings.map(u => ({name: u, type: "node", enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
+			{name: 'units', list: units.map(u => ({name: u, type: "node", unit: true, enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
+			{name: 'buildings', list: buildings.map(u => ({name: u, type: "node", building: true, enabled: M.checkRequirement(u), onclick: (e) => this.treeClick(e)}))},
 			);
 		
 		this.tree.render(chooseList, data);
 		
 		this.addHoverDetails(chooseList);
 		
-		this.recentTreeNode = this.tree.nodes[0];
-		this.unitsTreeNode = this.tree.nodes[2];
-		this.buildingsTreeNode = this.tree.nodes[3];
+		//this.recentTreeNode = this.tree.nodes[0];
+		this.recentTreeNode = this.tree.nodes.find(e => e.data.name == 'recent');
+		this.unitsTreeNode = this.tree.nodes.find(e => e.data.name == 'units');
+		this.buildingsTreeNode = this.tree.nodes.find(e => e.data.name == 'buildings');
+		//this.buildingsTreeNode = this.tree.nodes[4];
 	}
 	
 	addFactionBtn(data){
@@ -214,7 +288,14 @@ class BuildOrderUI {
 				req.innerHTML = "Required: <span class='buildingName'>" 
 					+ unit.building_requirement.join("</span>, <span class='buildingName'>")
 					+ "</span>";
-			}			
+			}
+			if(unit.building_requirement_from){
+				let req = createDiv(this.chooseDetailsDiv, '', 'requiredDetails');
+				req.innerHTML = "Built from: <span class='buildingName'>" 
+					+ unit.building_requirement_from.join("</span>, <span class='buildingName'>")
+					+ "</span>";
+			}
+			
 		}
 		/*
 		let building = gBuildings[name];
@@ -236,7 +317,6 @@ class BuildOrderUI {
 		
 	}
 	
-	
 	getSpecialNodes(){
 		return ['label', 'transfer worker'];
 	}
@@ -247,7 +327,7 @@ class BuildOrderUI {
 			this.checkUnlocked();
 		}
 		
-		let newBOElem = {name: elem.name};
+		let newBOElem = {name: elem.name, data: elem};
 		this.parent.addBuildOrder(newBOElem);
 		this.renderBuildOrderElem(newBOElem);
 		
@@ -292,6 +372,9 @@ class BuildOrderUI {
 			let div = createDiv(this.selectedListDiv, '', 'selectedListElem');
 			elem.div = div;
 			div._BO = elem;
+			
+			let time = createSpan(div, '00:00', 'timeInfo');
+			
 			let drag = createSpan(div, '☰', 'dragHandle');
 			drag.draggable= true;
 			createSpan(div, elem.name, 'name');
