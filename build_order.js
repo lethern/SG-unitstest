@@ -4,6 +4,7 @@ class BuildOrder {
 	constructor(){
 		this.UI = new BuildOrderUI(this);
 		this.mechanics = new BuildOrderMechanics(this);
+		this.sim = new Sim(this);
 		
 		this.recent = [];
 		this.buildOrder = [];
@@ -15,6 +16,7 @@ class BuildOrder {
 		let main = document.getElementById('main');
 		
 		this.UI.render(main, this.recent);
+		this.sim.render(main);
 	}
 	
 	addBuildOrder(elem){
@@ -22,6 +24,112 @@ class BuildOrder {
 	}
 }
 
+class Sim {
+	constructor(parent){
+		this.parent = parent;
+	}
+	render(div){
+		this.simDiv = createDiv(div, '', 'simMain');
+	}
+	run(){
+		this.simDiv.textContent = '1';
+		let instance = new SimInstance(this, this.parent.mechanics);
+		
+		let buildOrder = this.parent.buildOrder;
+		instance.run(buildOrder);
+	}
+}
+class SimInstance {
+	constructor(parent, mechanics){
+		this.parent = parent;
+		this.mechanics = mechanics;
+		this.players = [];
+		this.luminites = [];
+	}
+	
+	async run(buildOrder){
+		this.parent.simDiv.innerHTML = '';
+		
+		this.initialDelayPlayer = 3000;
+		
+		
+		let init_time = 0;
+		///////// ---dev init ---
+		this.players[0] = new Player(this, 0, 'v');
+		this.luminites[0] = new Luminite(this, 0);
+		
+		this.players[0].startupInit(this.getMine(0).id, init_time);
+		this.players[0].setBuildOrder(buildOrder);
+		/////////
+		
+		let time = init_time;
+		
+		let sim_time = 1.5; // N minutes
+		let errored = false;
+		while(true){
+			try{
+				this.players.forEach(p => p.update(time));
+				
+				if(time % (1000) == 0){
+					await sleep(1);
+					//debugPrint();
+				}
+				
+				if(this.players[0].finishedBuildOrder) break;
+				
+				if(time - init_time > sim_time* 60*1000) break;
+				time += 1;
+			}catch(err){
+				if(err && err.BOItem){
+					this.parent.simDiv.innerHTML += `<div>Cannot build ${err.BOItem.name}`;
+				}
+				errored = true;
+				break;
+			}
+		}
+		if(!errored){
+			this.parent.simDiv.innerHTML += "success";
+		}
+		//this.debugPrint();
+		//this.players.forEach((p,i) => p.printDebug());
+	}
+	
+	getMine(id){
+		return this.luminites[id];
+	}
+	
+	getPlayer(n){
+		return this.players[n];
+	}
+	
+	debugPrint(){
+		let string = '';
+		this.players.forEach(p => {
+			string += 'lumi: '+p.lumi + '<br />';
+			let mine = this.getMine(p.id);
+			
+			let slots = [[], [], [], []];
+			p.workers.forEach(w => {
+				slots[w.mineSpot].push(this.printAction(w.action));
+			});
+			for(let i in slots){
+				string += 'slot '+i+', ' + (mine.getSlotState(i) == MINE_STATUS.FREE ? 'O' : 'M') + ', '+ slots[i].join(', ')+ '<br />'
+			}
+			//}).join(', ')+ '<br />';
+		});
+		string += 'MV '+this.getPlayer(0).workers[0].time_moving + ', MI '+this.getPlayer(0).workers[0].time_mining+', W '+this.getPlayer(0).workers[0].time_waiting+'<br/>'
+		this.parent.simDiv.innerHTML += string;
+	}
+	
+	printAction(action){
+		switch(action){
+			case ACTIONS.GO_MINING_LUMI: return 'go'
+			case ACTIONS.MINE_LUMI: return 'mine'
+			case ACTIONS.RETURN_LUMI: return 'back'
+			case ACTIONS.WAIT: return 'wait'
+		}
+	}
+}
 class BuildOrderUI {
 	constructor(parent){
 		this.parent = parent;
@@ -31,7 +139,7 @@ class BuildOrderUI {
 		this.selectedListColumnDiv = null;
 		this.selectedListDiv = null;
 		this.selectedListDetailsDiv = null;
-		this.detailsDiv = null;
+		this.tmpDiv = null;
 		this.tree = null;
 		
 		this.recentTreeNode = null;
@@ -49,6 +157,13 @@ class BuildOrderUI {
 		enabled: true|false
 		onclick
 	*/
+	/*
+	build order list (_BO)
+		build_with_n_workers
+		build_distance
+		use_overcharged
+		use_veterancy
+	*/
 	
 	renderSelectedList(div){
 		let wrap = this.selectedListColumnDiv = createDiv(div, '', 'selectedListColumn');
@@ -58,7 +173,8 @@ class BuildOrderUI {
 		this.selectedListDiv.addEventListener('click', (e)=>{
 			if(e.target.draggable) return;
 			let node = e.target.closest('.selectedListElem, .selectedListSpecial');
-			this.renderSelectedOnClick(node);
+			if(node)
+				this.renderSelectedOnClick(node);
 		});
 	}
 	
@@ -85,7 +201,7 @@ class BuildOrderUI {
 				let inp = createInput(row, node._BO.build_with_n_workers, 'detailsSmallInput');
 				inp.addEventListener('input', (e)=>{ let input = e.target; if(isNaN(input.value)) input.value=1; else node._BO.build_with_n_workers = input.value});
 				
-				if(!node._BO.build_distance) node._BO.build_distance = 1;
+				if(!node._BO.build_distance) node._BO.build_distance = 10;
 				row = createDiv(this.selectedListDetailsDiv);
 				createSpan(row, "Build distance:");
 				inp = createInput(row, node._BO.build_distance, 'detailsSmallInput');
@@ -97,7 +213,7 @@ class BuildOrderUI {
 				inp = createCheckbox(row, node._BO.use_overcharged, 'detailsSmallInput');
 				inp.addEventListener('change', (e)=>{ node._BO.use_overcharged = e.target.checked; });
 				
-				if(node._BO.use_veterancy === undefined) node._BO.use_overcharged = false;
+				if(node._BO.use_veterancy === undefined) node._BO.use_veterancy = false;
 				row = createDiv(this.selectedListDetailsDiv);
 				createSpan(row, "Use Veterancy BOBs:");
 				inp = createCheckbox(row, node._BO.use_veterancy, 'detailsSmallInput');
@@ -197,11 +313,11 @@ class BuildOrderUI {
 		this.chooseDetailsDiv = createDiv(this.chooseListColumnDiv, '', 'chooseDetails');
 		let chooseList = this.chooseListDiv = createDiv(this.chooseListColumnDiv, '', 'chooseList');
 		this.renderSelectedList(div);
-		this.detailsDiv = createDiv(div, '', 'detailsDiv');
+		this.tmpDiv = createDiv(div, '', 'tmpDiv');
 		
 		let M = this.parent.mechanics;
-		let units = M.units;
-		let buildings = M.buildings;
+		let units = M.unitsNames;
+		let buildings = M.buildingsNames;
 		let specials = this.getSpecialNodes();
 		
 		units = [...units].sort();
@@ -225,6 +341,12 @@ class BuildOrderUI {
 		this.unitsTreeNode = this.tree.nodes.find(e => e.data.name == 'units');
 		this.buildingsTreeNode = this.tree.nodes.find(e => e.data.name == 'buildings');
 		//this.buildingsTreeNode = this.tree.nodes[4];
+		
+		this.renderTmp();
+	}
+	
+	renderTmp(){
+		createBtn(this.tmpDiv, 'sim', null, ()=> this.parent.sim.run() );
 	}
 	
 	addFactionBtn(data){
@@ -389,23 +511,27 @@ class BuildOrderUI {
 class BuildOrderMechanics {
 	constructor(){
 		this.parent = parent;
-		this.units = null; // list of all units to display
-		this.buildings = null; // list of all buildings to display
+		this.unitsNames = null; // list of all units to display
+		this.buildingsNames = null; // list of all buildings to display
 		this.unlockedList = [];
 	}
 	
 	initFaction(faction){
 		this.faction = faction;
-		this.units = getFactionUnits(faction);
-		this.buildings = getFactionBuildings(faction);
+		this.unitsNames = getFactionUnits(faction);
+		this.buildingsNames = getFactionBuildings(faction);
 		this.initBasicUnlock(faction);
 	}
 	
 	initBasicUnlock(faction){
+		this.unlockedList.push(BuildOrderMechanics.getFactionBasicBuilding(faction));
+	}
+	
+	static getFactionBasicBuilding(faction){
 		switch(faction){
-			case 'v': this.unlockedList.push('Command Post'); break;
-			case 'i': this.unlockedList.push('Shrine'); break;
-			case 'c': this.unlockedList.push('Arcship'); break;
+			case 'v': return 'Command Post';
+			case 'i': return 'Shrine';
+			case 'c': return 'Arcship';
 		}
 	}
 	
@@ -428,7 +554,6 @@ class BuildOrderMechanics {
 			if(!has_any)
 				enabled = false;
 		}
-		console.log(name, enabled);
 		return enabled;
 	}
 
