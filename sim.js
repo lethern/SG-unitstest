@@ -24,7 +24,159 @@ const MINE_STATUS = {
 };
 
 
+
+class PlayerMacro {
+	constructor(player){
+		this.player = player;
+	}
+	
+	setBuildOrder(buildOrder) {
+		this.buildOrder = buildOrder;
+		this.buildOrderIndex = 0;
+	}
+	
+	macro(time){
+		if(this.buildOrder) this.macroBuildOrder(time);
+		else this.macroTrivial(time);
+	}
+	
+	macroBuildOrder(time){
+		if(this.buildOrderIndex >= this.buildOrder.length){
+			this.player.finishedBuildOrder = true;
+			return;
+		}
+		let item = this.buildOrder[this.buildOrderIndex];
+		let success = this.tryToBuild(time, item);
 		
+		if(success){
+			console.log('success '+item.name);
+			this.buildOrderIndex++;
+		}
+	}
+	
+	tryToBuild(time, BOItem){
+		if(BOItem.data.unit) return this.tryToBuildUnit(time, BOItem);
+		if(BOItem.data.building) return this.tryToBuildBuilding(time, BOItem);
+		return this.doBuildOrderSpecial(time, BOItem);
+	}
+	
+	tryToBuildUnit(time, BOItem){
+		let canBuild = true;
+		let data = gUnits[BOItem.name];
+		if(data.built) {
+			if(!this.checkHasAnyBuilding(data.built)) canBuild = false;
+		}
+		if(data.building_requirement){
+			if(!this.checkHasAllBuilding(data.building_requirement)) canBuild = false;
+		}
+		
+		// TODO: supply
+		
+		if(!canBuild)
+			throw { time, BOItem };
+		
+		let canAfford = true;
+		if(data.luminite && data.luminite > this.player.lumi) canAfford = false;
+		if(data.therium && data.therium > this.player.ther) canAfford = false;
+		if(!canAfford){
+			return false;
+		}
+		
+		// success
+		console.log('setting time '+time);
+		BOItem.time = time;
+		this.scheduleUnit(time, BOItem, data);
+		return true;
+	}
+	
+	tryToBuildBuilding(time, BOItem){
+		let canBuild = true;
+		let data = gBuildings[BOItem.name];
+		if(data.building_requirement_from) {
+			if(!this.checkHasAnyBuilding(data.building_requirement_from)) canBuild = false;
+		}
+		if(data.building_requirement){
+			if(!this.checkHasAllBuilding(data.building_requirement)) canBuild = false;
+		}
+		
+		if(!canBuild)
+			throw { time, BOItem };
+		
+		let canAfford = true;
+		if(data.luminite && data.luminite > this.player.lumi) canAfford = false;
+		if(data.therium && data.therium > this.player.ther) canAfford = false;
+		if(!canAfford){
+			return false;
+		}
+		
+		// success
+		BOItem.time = time;
+		this.scheduleBuilding(time, BOItem, data);
+		return true;
+	}
+	
+	macroTrivial(time){
+		if(time < this.player.sim.initialDelayPlayer) return;
+		if(!this.player.tmpBobBuildQueue && this.lumi >= 50 && this.player.workers.length < 12){
+//			console.log('recruit bob '+`${this.id}, ${time}, ${this.tmpBobBuildQueue} && ${this.lumi} && ${this.workers.length}`);
+			this.player.modifyResource(RESOURCES.LUMINITE, -50);
+			this.player.tmpBobBuildQueue = time;
+		}
+		if(this.player.tmpBobBuildQueue){
+			let timePassed = time - this.player.tmpBobBuildQueue;
+			if(timePassed >= 1000* gUnits["BOB"].buildtime){
+//				console.log('bob finished, '+timePassed);
+				this.player.workers.push(this.newWorker(time));
+				this.player.tmpBobBuildQueue = null;
+			}
+		}
+	}
+
+	checkHasAnyBuilding(list){
+		let hasOne = false;
+		for(let b of list)
+			if(this.player.builtBuildings.includes(b)) hasOne = true;
+		return hasOne;
+	}
+	
+	checkHasAllBuilding(list){
+		for(let b of list)
+			if(!this.player.builtBuildings.includes(b)) return false;
+		return true;
+	}
+	
+	newWorker(time){
+		return new Worker(this.player.sim, this.player.id, this.player.workers[0].mineId, (this.player.workers.length+1)%4, time)
+	}
+	
+	scheduleBuilding(time, BOItem, data){
+		this.player.builtBuildings.push(BOItem.name);
+		console.log("build b "+BOItem.name);
+		
+		/** tmp - need worker move */
+		this.payCost(data);
+	}
+	
+	scheduleUnit(time, BOItem, data){
+		//this.builtBuildings.push(BOItem.name);
+		console.log("build u "+BOItem.name);
+		if(BOItem.name == 'BOB'){
+			this.player.workers.push(this.newWorker(time));
+		}
+		this.payCost(data);
+	}
+	
+	payCost(data){
+		if(data.luminite) this.player.modifyResource(RESOURCES.LUMINITE, -data.luminite);
+		if(data.therium) this.player.modifyResource(RESOURCES.THERIUM, -data.therium);
+	}
+	
+	doBuildOrderSpecial(time, BOItem){
+		console.log('special ', BOItem);
+		return true;
+	}
+}
+
 class Player{
 	constructor(sim, playerId, faction) {
 		this.sim = sim;
@@ -36,12 +188,13 @@ class Player{
 		this.builtBuildings = [];
 		this.tmpBobBuildQueue = null;
 		this.stats = { totalLumi: 0 };
+		this.macroInstance = new PlayerMacro(this);
 	}
 	
 	startupInit(mineId, init_time){
 		this.lumi = 150;
 		this.stats.totalLumi= 150;
-		this.addWorkers(mineId, 8, init_time);
+		this.setWorkers(mineId, 8, init_time);
 		
 		this.builtBuildings = [BuildOrderMechanics.getFactionBasicBuilding(this.faction)];
 	}
@@ -62,105 +215,12 @@ class Player{
 	}
 	
 	setBuildOrder(buildOrder) {
-		this.buildOrder = buildOrder;
-		this.buildOrderIndex = 0;
+		this.macroInstance.setBuildOrder(buildOrder);
 	}
 	
 	macro(time){
-		if(this.buildOrder) this.macroBuildOrder(time);
-		else this.macroTrivial(time);
-	}
-	
-	macroBuildOrder(time){
-		if(this.buildOrderIndex >= this.buildOrder.length){
-			this.finishedBuildOrder = true;
-			return;
-		}
-		let item = this.buildOrder[this.buildOrderIndex];
-		let success = this.tryToBuild(time, item);
-		if(success){
-			this.buildOrderIndex++;
-		}
-	}
-	
-	tryToBuild(time, BOItem){
-		if(BOItem.data.unit) return this.tryToBuildUnit(time, BOItem);
-		if(BOItem.data.building) return this.tryToBuildBuilding(time, BOItem);
-		return this.doBuildOrderSpecial(time, BOItem);
-	}
-	
-	tryToBuildUnit(time, BOItem){
-		let canBuild = true;
-		let data = gUnits[BOItem.name];
-		if(data.built) {
-			let hasOne = false;
-			for(let b of data.built)
-				if(this.builtBuildings.includes(b)) hasOne = true;
-			if(!hasOne) canBuild = false;
-		}
-		if(data.building_requirement){
-			for(let b of data.building_requirement)
-				if(!this.builtBuildings.includes(b)) canBuild = false;
-		}
-		
-		console.log('try '+BOItem.name + ': '+canBuild);
-		
-		if(!canBuild)
-			throw { time, BOItem };
-		
-		// success
-		BOItem.time = time;
-		return true;
-	}
-	
-	tryToBuildBuilding(time, BOItem){
-		let canBuild = true;
-		let data = gBuildings[BOItem.name];
-		if(data.building_requirement_from) {
-			let hasOne = false;
-			for(let b of data.building_requirement_from)
-				if(this.builtBuildings.includes(b)) hasOne = true;
-			if(!hasOne) canBuild = false;
-		}
-		if(data.building_requirement){
-			for(let b of data.building_requirement)
-				if(!this.builtBuildings.includes(b)) canBuild = false;
-		}
-		
-		console.log('try '+BOItem.name + ': '+canBuild);
-		
-		if(!canBuild)
-			throw { time, BOItem };
-		
-		// success
-		BOItem.time = time;
-		this.scheduleBuilding(time, BOItem);
-		return true;
-	}
-	
-	scheduleBuilding(time, BOItem){
-		this.builtBuildings.push(BOItem.name);
-	}
-	
-	doBuildOrderSpecial(time, BOItem){
-		return true;
-	}
-	
-	macroTrivial(time){
-		if(time < this.sim.initialDelayPlayer) return;
-		if(!this.tmpBobBuildQueue && this.lumi >= 50 && this.workers.length < 12){
-//			console.log('recruit bob '+`${this.id}, ${time}, ${this.tmpBobBuildQueue} && ${this.lumi} && ${this.workers.length}`);
-			this.modifyResource(RESOURCES.LUMINITE, -50);
-			this.tmpBobBuildQueue = time;
-		}
-		if(this.tmpBobBuildQueue){
-			let timePassed = time - this.tmpBobBuildQueue;
-			if(timePassed >= 1000* gUnits["BOB"].buildtime){
-//				console.log('bob finished, '+timePassed);
-				this.workers.push(new Worker(this.sim, this.id, this.workers[0].mineId, (this.workers.length+1)%4, time));
-				this.tmpBobBuildQueue = null;
-			}
-		}
+		if(time % 10 != 0) return;
+		this.macroInstance.macro(time);
 	}
 	
 	printDebug(){
@@ -168,9 +228,10 @@ class Player{
 		this.workers.forEach(w => console.log(' worker '+ w.mineSpot + ', mined '+w.lumiHistory + ', MV '+w.time_moving + ', MI '+w.time_mining + ', W '+w.time_waiting ));
 	}
 	
-	addWorkers(mineId, number, init_time){
+	setWorkers(mineId, number, init_time){
 		this.workers =  Array(number).fill(null).map((_,i) => new Worker(this.sim, this.id, mineId, (i+1)%4, init_time));
 	}
+	
 }
 
 

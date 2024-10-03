@@ -39,6 +39,7 @@ class Sim {
 		instance.run(buildOrder);
 	}
 }
+
 class SimInstance {
 	constructor(parent, mechanics){
 		this.parent = parent;
@@ -49,6 +50,10 @@ class SimInstance {
 	
 	async run(buildOrder){
 		this.parent.simDiv.innerHTML = '';
+		for(let BO of buildOrder){
+			BO.time = undefined;
+		}
+		
 		
 		this.initialDelayPlayer = 3000;
 		
@@ -82,13 +87,21 @@ class SimInstance {
 			}catch(err){
 				if(err && err.BOItem){
 					this.parent.simDiv.innerHTML += `<div>Cannot build ${err.BOItem.name}`;
+				}else{
+					this.parent.simDiv.innerHTML += `<div>Error: ${err}`;
+					console.log(err);
 				}
 				errored = true;
 				break;
 			}
 		}
 		if(!errored){
-			this.parent.simDiv.innerHTML += "success";
+			this.parent.simDiv.innerHTML += "success, lumi: "+this.players[0].lumi+', total: '+this.players[0].stats.totalLumi;
+			let UI = this.parent.parent.UI;
+			for(let BO of buildOrder){
+				if(BO.time === undefined) BO.timeDiv.textContent = '--:--';
+				else BO.timeDiv.textContent = msToDisplayTime(BO.time);
+			}
 		}
 		//this.debugPrint();
 		//this.players.forEach((p,i) => p.printDebug());
@@ -495,7 +508,7 @@ class BuildOrderUI {
 			elem.div = div;
 			div._BO = elem;
 			
-			let time = createSpan(div, '00:00', 'timeInfo');
+			div._BO.timeDiv = createSpan(div, '00:00', 'timeInfo');
 			
 			let drag = createSpan(div, '☰', 'dragHandle');
 			drag.draggable= true;

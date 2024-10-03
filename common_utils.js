@@ -43,3 +43,12 @@ function createCheckbox(parent, bool, css){
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+function msToDisplayTime(ms){
+	let reminder = ms % 1000;
+	let s = Math.round(ms / 1000);
+	let min = Math.floor(s / 60);
+	s = s % 60;
+	return (''+min).padStart(2, '0')+ ':' +
+		(''+s).padStart(2, '0');
+}
