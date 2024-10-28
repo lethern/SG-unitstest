@@ -9,6 +9,8 @@ class Unit {
 		this.alive = true;
 		this.attackTarget = null;
 		this.attackWaitingMs = null;
+		this.valSelectedAttack = null;
+
 		// current stats
 		this.hp = this.blueprint.health;
 		this.armor = this.blueprint.armor;
@@ -23,23 +25,46 @@ class Unit {
 	}
 
 	aquireTarget(deltaTimeMs) {
-		let selectedAttack = this.selectedAttack();
-		if (selectedAttack.minimumRange) {
-			let { target, distance } = findClosestUnitWithMinimum(this.posX, this.posY, (1 - this.player), selectedAttack.target, selectedAttack.minimumRange)
-			if (target && distance < 25) {
-				this.attackTarget = target;
-			}
-		} else {
-			let { target, distance } = findClosestUnit(this.posX, this.posY, (1 - this.player), selectedAttack.target)
-			if (target && distance < 25) {
-				this.attackTarget = target;
-			}
+		let possibleTargetTypes = this.possibleTargetTypes();
+
+		let { target, distance } = findClosestUnit(this.posX, this.posY, (1 - this.player), possibleTargetTypes)
+		if (target && distance < 25) {
+			this.attackTarget = target;
+			this.valSelectedAttack = this.selectAttackByType(target);
 		}
-		
+
+		//let selectedAttack = this.selectedAttack();
+		//if (selectedAttack.minimumRange) {
+		//	let { target, distance } = findClosestUnitWithMinimum(this.posX, this.posY, (1 - this.player), possibleTargetTypes, selectedAttack.minimumRange)
+		//	if (target && distance < 25) {
+		//		this.attackTarget = target;
+		//		this.valSelectedAttack = this.selectAttackByType();
+		//	}
+		//}
+	}
+
+	possibleTargetTypes() {
+		let ground = false;
+		let air = false;
+		for (let att of this.blueprint.attacks) {
+			if (att.target.includes('Ground')) ground = true;
+			if (att.target.includes('Air')) air = true;
+		}
+		let targets = [];
+		if (ground) targets.push('Ground');
+		if (air) targets.push('Air');
+		return targets;
 	}
 
 	selectedAttack() {
-		return this.blueprint.attacks[0];
+		//return this.blueprint.attacks[0];
+		return this.valSelectedAttack;
+	}
+
+	selectAttackByType(unit) {
+		for (let att of this.blueprint.attacks) {
+			if (att.target.includes(unit.blueprint.type)) return att;
+		}
 	}
 
 	attack(deltaTimeMs) {
