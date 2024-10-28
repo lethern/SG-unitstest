@@ -12,6 +12,7 @@ class Unit {
 		// current stats
 		this.hp = this.blueprint.health;
 		this.armor = this.blueprint.armor;
+		this.type = this.blueprint.type;
 	}
 
 	update(deltaTimeMs) {
@@ -24,12 +25,12 @@ class Unit {
 	aquireTarget(deltaTimeMs) {
 		let selectedAttack = this.selectedAttack();
 		if (selectedAttack.minimumRange) {
-			let { target, distance } = findClosestUnitWithMinimum(this.posX, this.posY, (1 - this.player), selectedAttack.minimumRange)
+			let { target, distance } = findClosestUnitWithMinimum(this.posX, this.posY, (1 - this.player), selectedAttack.target, selectedAttack.minimumRange)
 			if (target && distance < 25) {
 				this.attackTarget = target;
 			}
 		} else {
-			let { target, distance } = findClosestUnit(this.posX, this.posY, (1 - this.player))
+			let { target, distance } = findClosestUnit(this.posX, this.posY, (1 - this.player), selectedAttack.target)
 			if (target && distance < 25) {
 				this.attackTarget = target;
 			}
@@ -49,7 +50,10 @@ class Unit {
 			this.attackTarget = null;
 			return;
 		}
-		if (distance > selectedAttack.range) {
+		let range = selectedAttack.range;
+		range += (this.blueprint.size || 1.5)/2
+		range += (this.attackTarget.blueprint.size || 1.5)/2
+		if (distance > range) {
 			this.moveTowards(deltaTimeMs, this.attackTarget.posX, this.attackTarget.posY)
 			return;
 		}
@@ -102,6 +106,8 @@ class Unit {
 	}
 
 	moveTowards(deltaTimeMs, posX, posY) {
+		if (!gConfig.canMove) return;
+
 		const directionX = posX - this.posX;
 		const directionY = posY - this.posY;
 		const speedScaling = 0.5;
@@ -140,14 +146,16 @@ class Unit {
 			const yPos = this.posY * gUnitSizeScaling;
 			const image = gImages[this.unitName].img;
 
-			const unitSize = this.blueprint.size;
+			const unitSize = (this.blueprint.size || 1.5);
 			let size = unitSize * gUnitSizeScaling;
 
 			this.drawCircle(xPos, yPos, size);
 
-			ctx.drawImage(image, xPos, yPos - (size / 5), size, size);
+			let renderYPos = yPos - (size / 5);
+			if (this.blueprint.type == 'Air') renderYPos -= size / 1;
+			ctx.drawImage(image, xPos, renderYPos, size, size);
 
-			this.drawHp(xPos, yPos, size);
+			this.drawHp(xPos, renderYPos, size);
 		} catch (e) {
 			gDrawError = true;
 			console.log(e);
@@ -155,10 +163,10 @@ class Unit {
 	}
 
 	drawHp(xPos, yPos, size) {
-		const hpBarWidth = 1.5 * gUnitSizeScaling;
+		const hpBarWidth = 0.9*size;// 1.5 * gUnitSizeScaling;
 		const hpBarHeight = gUnitSizeScaling/8;
-		const hpBarX = xPos;
-		const hpBarY = yPos - (size / 5) - hpBarHeight - 2; // Position above the sprite
+		const hpBarX = xPos + size / 2 - hpBarWidth/2;
+		const hpBarY = yPos - hpBarHeight - 2;
 
 		const healthRatio = this.hp / this.blueprint.health;
 
@@ -173,19 +181,20 @@ class Unit {
 		ctx.beginPath();
 		//ctx.arc(xPos + gridSize / 2, yPos + gridSize / 2, unitRadius, 0, Math.PI * 2);
 		ctx.ellipse(xPos + size / 2, yPos + size / 2, size / 2, size / 2 * 0.7, 0, 0, Math.PI * 2);
-		ctx.strokeStyle = 'green';
+		ctx.strokeStyle = this.player ? 'red' : '#0000AA';
 		ctx.lineWidth = 2;
 		ctx.stroke();
 		ctx.closePath();
 	}
 }
 
-function findClosestUnit(posX, posY, player) {
+function findClosestUnit(posX, posY, player, targetTypes) {
 	let min_distance = 10000000;
 	let result = null;
 	for (let unit of gMapUnits) {
 		if (unit.player != player) continue;
 		if (!unit.alive) continue;
+		if (!targetTypes.includes(unit.type)) continue;
 
 		const diffX = unit.posX - posX;
 		const diffY = unit.posY - posY;
@@ -198,12 +207,13 @@ function findClosestUnit(posX, posY, player) {
 	return { target: result, distance: Math.sqrt(min_distance) };
 }
 
-function findClosestUnitWithMinimum(posX, posY, player, minAllowedDistance) {
+function findClosestUnitWithMinimum(posX, posY, player, targetTypes, minAllowedDistance) {
 	let min_distance = 10000000;
 	let result = null;
 	for (let unit of gMapUnits) {
 		if (unit.player != player) continue;
 		if (!unit.alive) continue;
+		if (!targetTypes.includes(unit.type)) continue;
 
 		const diffX = unit.posX - posX;
 		const diffY = unit.posY - posY;
@@ -217,8 +227,8 @@ function findClosestUnitWithMinimum(posX, posY, player, minAllowedDistance) {
 }
 
 function distanceBetween(unitA, unitB) {
-	const diffX = unitA.posX - unitB.posX;
-	const diffY = unitA.posY - unitB.posY;
+	let diffX = unitA.posX - unitB.posX;
+	let diffY = unitA.posY - unitB.posY;
 	const distance = diffX * diffX + diffY * diffY;
 	return Math.sqrt(distance);
 }

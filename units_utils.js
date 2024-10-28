@@ -26,7 +26,8 @@ function getFactionBuildings(faction){
 }
 
 initBuildings();
-function initBuildings(){
+function initBuildings() {
+	if (!window.gBuildings) return;
 	for(let it in gBuildings){
 		let b = gBuildings[it];
 		if(b.upgrades_to){

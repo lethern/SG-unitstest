@@ -5,19 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alpha Unit Test Early Access Beta</title>
   <style>
-	  html {
-		  background-color: #d3d3d3;
-	  }
-    canvas {
-      border: 1px solid black;
-      background-color: #d3d3d3;
-    }
+html {
+	background-color: #d3d3d3;
+}
+canvas {
+	border: 1px solid black;
+	background-color: #d3d3d3;
+}
+#setupDiv{
+	display: inline-block;
+	vertical-align: top;
+}
+.btn{
+	border: 1px solid black;
+	border-radius: 4px;
+	padding: 2px 5px;
+	display: inline-block;
+	background-color: #b4c0ff;
+	cursor: pointer;
+}
+.spaced{
+	margin-top: 5px;
+}
   </style>
 </head>
 <body>
+	<div style="font-size: 0.9em;">
+		This is a Work In Progress simulation, which might be incorrect and different from the game - do not use for serious conclusions! Code at <a href="https://github.com/lethern/SG-unitstest">github</a>. Leave feedback to lethern at discord
+	</div>
   <canvas id="gameCanvas" width="1500" height="800"></canvas>
+  <div id="setupDiv"></div>
+  <script src="common_utils.js"></script>
   <script src="units_data.js"></script>
   <script src="unit.js"></script>
+  <script src="units_utils.js"></script>
   <script src="main.js"></script>
   <script>
 
