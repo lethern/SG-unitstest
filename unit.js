@@ -140,15 +140,42 @@ class Unit {
 		const distance = Math.sqrt(directionX * directionX + directionY * directionY);
 
 		if (distance > 0.05) {
-			const moveX = (directionX / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
-			const moveY = (directionY / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
-			//console.log(`${moveY} = (${directionY} / ${distance}) * ${this.blueprint.speed} * ${deltaTimeMs / 1000} * ${speedScaling}`)
+			let moveX = (directionX / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
+			let moveY = (directionY / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
+
+			const newX = this.posX + moveX;
+			const newY = this.posY + moveY;
+
+			for (let otherUnit of gMapUnits) {
+				if (otherUnit !== this && this.checkCollision({ posX: newX, posY: newY, blueprint: this.blueprint }, otherUnit)) {
+					const repelX = newX - otherUnit.posX;
+					const repelY = newY - otherUnit.posY;
+					const repelDistance = Math.sqrt(repelX * repelX + repelY * repelY);
+
+					if (repelDistance > 0) {
+						let repulsionStrengthX = 0.02;
+						let repulsionStrengthY = 0.02;
+						if (directionX > directionY) repulsionStrengthY = 0.05; else repulsionStrengthX = 0.05;
+						moveX += (repelX / repelDistance) * repulsionStrengthX;
+						moveY += (repelY / repelDistance) * repulsionStrengthY;
+					}
+				}
+			}
+
 			this.posX += moveX;
 			this.posY += moveY;
 		} else {
 			this.posX = posX;
 			this.posY = posY;
 		}
+	}
+
+	checkCollision(unit1, unit2) {
+		const dx = unit2.posX - unit1.posX;
+		const dy = unit2.posY - unit1.posY;
+		const distance = Math.sqrt(dx * dx + dy * dy);
+		const combinedSize = (unit1.blueprint.size + unit2.blueprint.size) / 2;
+		return distance < combinedSize;
 	}
 
 	work(deltaTimeMs) {

@@ -84,7 +84,8 @@ function setupComplete(){
 	
 	let count = +gSetupSelects.countTop.value;
 
-	let posX = 1;
+	let startingX = 3;
+	let posX = startingX;
 	let posY = 1;
 	let name = gSetupSelects.selectTop.value;
 	let unit = gUnits[name];
@@ -94,7 +95,7 @@ function setupComplete(){
 		gMapUnits.push(new Unit(0, name, posX, posY));
 		posX += s*1.05;
 		if (posX > 15) {
-			posX = 1;
+			posX = startingX;
 			posY += unit.size*1.1;
 		}
 	}
@@ -104,8 +105,8 @@ function setupComplete(){
 
 	count = +gSetupSelects.countBottom.value;
 
-	posX = 1;
-	posY = 12;
+	posX = startingX;
+	posY = 11;
 	name = gSetupSelects.selectBottom.value;
 	unit = gUnits[name];
 	s = unit.size || 1.5;
@@ -114,7 +115,7 @@ function setupComplete(){
 		gMapUnits.push(new Unit(1, name, posX, posY));
 		posX += s * 1.05;
 		if (posX > 15) {
-			posX = 1;
+			posX = startingX;
 			posY -= unit.size * 1.1;
 		}
 	}
