@@ -134,18 +134,24 @@ class Unit {
 	}
 
 	draw() {
-		const xPos = this.posX * gUnitSizeScaling;
-		const yPos = this.posY * gUnitSizeScaling;
-		const image = gImages[this.unitName].img;
+		if (gDrawError) return;
+		try {
+			const xPos = this.posX * gUnitSizeScaling;
+			const yPos = this.posY * gUnitSizeScaling;
+			const image = gImages[this.unitName].img;
 
-		const unitSize = this.blueprint.size;
-		let size = unitSize * gUnitSizeScaling;
+			const unitSize = this.blueprint.size;
+			let size = unitSize * gUnitSizeScaling;
 
-		this.drawCircle(xPos, yPos, size);
+			this.drawCircle(xPos, yPos, size);
 
-		ctx.drawImage(image, xPos, yPos - (size / 5), size, size);
+			ctx.drawImage(image, xPos, yPos - (size / 5), size, size);
 
-		this.drawHp(xPos, yPos, size);
+			this.drawHp(xPos, yPos, size);
+		} catch (e) {
+			gDrawError = true;
+			console.log(e);
+		}
 	}
 
 	drawHp(xPos, yPos, size) {

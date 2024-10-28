@@ -2,7 +2,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 let gUnitSizeScaling = 45;
-
+let gDrawError = false;
 
 let lastTime = 0;
 let gMapUnits = [];
@@ -12,7 +12,7 @@ function loadImgs(){
 	for(let id in gUnits){
 		gImages[id] = { img: new Image() };
 		gImages[id].img.onload = () => loadSignal(id);
-		gImages[id].img.onerror = () => { gImages[id].img.src = 'img/i_' + id + '.png'; };
+		gImages[id].img.onerror = () => { gImages[id].img.onerror = null; gImages[id].img.src = 'img/i_' + id + '.png'; };
 		if (['Atlas', 'Hedgehog'].includes(id))
 			gImages[id].img.src = 'img/' + id + '.png';
 		else
