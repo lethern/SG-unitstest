@@ -8,24 +8,35 @@ let lastTime = 0;
 let gMapUnits = [];
 
 let gImages = {};
+let gImagesCount = 0;
 function loadImgs(){
-	for(let id in gUnits){
+	gImages['projectile'] = { img: new Image() };
+	gImages['projectile'].img.onload = () => {
+		loadSignal('projectile');
+		loadUnitImgs();
+	}
+	gImages['projectile'].img.src = 'img/projectile.png'
+	++gImagesCount;
+}
+
+function loadUnitImgs() {
+	for (let id in gUnits) {
 		gImages[id] = { img: new Image() };
 		gImages[id].img.onload = () => loadSignal(id);
 		gImages[id].img.onerror = () => { gImages[id].img.onerror = null; gImages[id].img.src = 'img/i_' + id + '.png'; };
 		if (['Atlas', 'Hedgehog'].includes(id))
 			gImages[id].img.src = 'img/' + id + '.png';
 		else
-			gImages[id].img.src = 'img/'+id+'.webp';
+			gImages[id].img.src = 'img/' + id + '.webp';
+		++gImagesCount;
 	}
-	
-	gImages['projectile'] = { img: new Image() };
-	gImages['projectile'].img.onload = () => loadSignal('projectile');
-	gImages['projectile'].img.src = 'img/projectile.png'
-	
-	function loadSignal(id){
-		gImages[id].width = gImages[id].img.width;
-		gImages[id].height = gImages[id].img.height;
+}
+function loadSignal(id) {
+	gImages[id].width = gImages[id].img.width;
+	gImages[id].height = gImages[id].img.height;
+	--gImagesCount;
+	if (gImagesCount <= 0 && id !='projectile') {
+		gameLoop(0);
 	}
 }
 
@@ -80,4 +91,3 @@ function gameLoop(timestamp) {
 
 loadImgs();
 setup();
-gameLoop(0);
