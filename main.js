@@ -45,23 +45,79 @@ function loadSignal(id) {
 	}
 }
 
-let gSetupSelects = {};
+function addSelectionRow(parentDiv, where, wrap) {
+	let containre;
+	let faction;
+	if (where == 'top') {
+		container = gSetupSelects.top;
+		faction = gSetupSelects.factionTop;
+	} else {
+		container = gSetupSelects.bottom;
+		faction = gSetupSelects.factionBottom;
+	}
+
+	if (wrap) {
+		wrap.innerHTML = '';
+	} else {
+		wrap = createDiv(parentDiv);
+	}
+
+	let newGroup = createDiv(parentDiv, '')
+
+	container.push({
+		count: renderCount(wrap),
+		select: renderUnitsDropdown(wrap, faction),
+		remove: function() {
+			wrap.remove();
+			this.plus.remove();
+		},
+		plus: createBtn(newGroup, '+', 'btn', () => addSelectionRow(parentDiv, where, newGroup))
+	})
+}
+function renderCount(div) {
+	let count = createInput(div)
+	count.type = "number";
+	count.min = "1";
+	count.max = "10";
+	count.value = "5";
+	return count;
+}
+
+let gSetupSelects = { top: [], bottom: []};
 function setup() {
 	let setupDiv = document.getElementById('setupDiv');
+
 	createDiv(setupDiv, 'Top army');
-	let factionTop = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial'])
-	
-	let wrapTop = createDiv(setupDiv);
-	gSetupSelects.selectTop = renderUnitsDropdown(wrapTop, factionTop)
-	factionTop.addEventListener('change', () => { gSetupSelects.selectTop.remove(); gSetupSelects.selectTop = renderUnitsDropdown(wrapTop, factionTop) })
-	gSetupSelects.countTop = createInput(setupDiv)
-	gSetupSelects.countTop.type = "number";
-	gSetupSelects.countTop.min = "1";
-	gSetupSelects.countTop.max = "10";
-	gSetupSelects.countTop.value = "5";
+	let factionTop = gSetupSelects.factionTop = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial'])
+	let topWrap = createDiv(setupDiv);
+	factionTop.addEventListener('change', () => { gSetupSelects.top.forEach(s => s.remove()); gSetupSelects.top = []; addSelectionRow(topWrap, 'top') })
+	addSelectionRow(topWrap, 'top')
 
 	createDiv(setupDiv, 'Bottom army', 'spaced');
-	let factionBottom = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial'])
+	let factionBottom = gSetupSelects.factionBottom = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial'])
+	let bottomWrap = createDiv(setupDiv);
+	factionBottom.addEventListener('change', () => { gSetupSelects.bottom.forEach(s => s.remove()); gSetupSelects.bottom = []; addSelectionRow(bottomWrap, 'bottom') })
+	addSelectionRow(bottomWrap, 'bottom')
+
+
+	gSetupSelects.btnGo = createBtn(createDiv(setupDiv, '', 'spaced'), 'Go', 'btn')
+	gSetupSelects.btnGo.onclick = setupComplete;
+
+	//let wrapTop = createDiv(setupDiv);
+	//gSetupSelects.selectTop = renderUnitsDropdown(wrapTop, factionTop)
+	//factionTop.addEventListener('change', () => { gSetupSelects.selectTop.remove(); gSetupSelects.selectTop = renderUnitsDropdown(wrapTop, factionTop) })
+	//
+	//
+	//
+	//
+	//
+
+	//
+	
+
+	/*
+	createDiv(setupDiv, 'Bottom army', 'spaced');
+	let factionBottom = gSetupSelects.factionBottom = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial'])
 
 	let wrapBottom = createDiv(setupDiv);
 	gSetupSelects.selectBottom = renderUnitsDropdown(wrapBottom, factionBottom)
@@ -75,48 +131,53 @@ function setup() {
 	gSetupSelects.btnGo = createBtn(createDiv(setupDiv, '', 'spaced'), 'Go', 'btn')
 	gSetupSelects.btnGo.onclick = setupComplete;
 	gSetupSelects.countBottom.value
+	*/
 }
 
 function setupComplete(){
 	if (!gReady) return alert('Not ready or error');
 
 	gMapUnits = [];
-	
-	let count = +gSetupSelects.countTop.value;
 
 	let startingX = 3;
 	let posX = startingX;
 	let posY = 1;
-	let name = gSetupSelects.selectTop.value;
-	let unit = gUnits[name];
-	let s = unit.size || 1.5;
+	for (let {count, select} of gSetupSelects.top) {
+		let _count = +count.value;
 
-	for (let i = 0; i < count; ++i) {
-		gMapUnits.push(new Unit(0, name, posX, posY));
-		posX += s*1.05;
-		if (posX > 15) {
-			posX = startingX;
-			posY += unit.size*1.1;
+		let name = select.value;
+		let unit = gUnits[name];
+		let s = unit.size || 1.5;
+
+		for (let i = 0; i < _count; ++i) {
+			gMapUnits.push(new Unit(0, name, posX, posY));
+			posX += s * 1.05;
+			if (posX > 15) {
+				posX = startingX;
+				posY += unit.size * 1.1;
+			}
 		}
 	}
-
-
+	
 	/////////
-
-	count = +gSetupSelects.countBottom.value;
 
 	posX = startingX;
 	posY = 11;
-	name = gSetupSelects.selectBottom.value;
-	unit = gUnits[name];
-	s = unit.size || 1.5;
 
-	for (let i = 0; i < count; ++i) {
-		gMapUnits.push(new Unit(1, name, posX, posY));
-		posX += s * 1.05;
-		if (posX > 15) {
-			posX = startingX;
-			posY -= unit.size * 1.1;
+	for (let { count, select } of gSetupSelects.bottom) {
+		let _count = +count.value;
+
+		let name = select.value;
+		let unit = gUnits[name];
+		let s = unit.size || 1.5;
+
+		for (let i = 0; i < _count; ++i) {
+			gMapUnits.push(new Unit(1, name, posX, posY));
+			posX += s * 1.05;
+			if (posX > 15) {
+				posX = startingX;
+				posY -= unit.size * 1.1;
+			}
 		}
 	}
 

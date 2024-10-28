@@ -80,6 +80,8 @@ class Unit {
 		range += (this.attackTarget.blueprint.size || 1.5)/2
 		if (distance > range) {
 			this.moveTowards(deltaTimeMs, this.attackTarget.posX, this.attackTarget.posY)
+			// remake target
+			this.attackTarget = null;
 			return;
 		}
 
@@ -143,11 +145,15 @@ class Unit {
 			let moveX = (directionX / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
 			let moveY = (directionY / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
 
+			const dx = moveX - posX;
+			const dy = moveY - posY;
+			const orig_distance = Math.sqrt(dx * dx + dy * dy);
+
 			const newX = this.posX + moveX;
 			const newY = this.posY + moveY;
 
 			for (let otherUnit of gMapUnits) {
-				if (otherUnit !== this && this.checkCollision({ posX: newX, posY: newY, blueprint: this.blueprint }, otherUnit)) {
+				if (otherUnit !== this && otherUnit.alive && this.checkCollision({ posX: newX, posY: newY, blueprint: this.blueprint }, otherUnit)) {
 					const repelX = newX - otherUnit.posX;
 					const repelY = newY - otherUnit.posY;
 					const repelDistance = Math.sqrt(repelX * repelX + repelY * repelY);
@@ -160,6 +166,16 @@ class Unit {
 						moveY += (repelY / repelDistance) * repulsionStrengthY;
 					}
 				}
+			}
+
+			// after modifying moveX moveY, normalize to be still within distance
+			const newDirectionX = moveX - posX;
+			const newDirectionY = moveY - posY;
+
+			const newDirectionMagnitude = Math.sqrt(newDirectionX * newDirectionX + newDirectionY * newDirectionY);
+			if (newDirectionMagnitude > 0) {
+				moveX = posX + (newDirectionX / newDirectionMagnitude) * orig_distance;
+				moveY = posY + (newDirectionY / newDirectionMagnitude) * orig_distance;
 			}
 
 			this.posX += moveX;
