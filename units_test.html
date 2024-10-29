@@ -15,6 +15,11 @@ canvas {
 #setupDiv{
 	display: inline-block;
 	vertical-align: top;
+
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+	max-width: 360px;
 }
 .btn{
 	border: 1px solid black;
@@ -27,6 +32,34 @@ canvas {
 .spaced{
 	margin-top: 7px;
 }
+.configHead{
+	margin-top: 7px;
+	font-size: 1.15em;
+}
+.unitConfig {
+	position: relative;
+	display: inline-block;
+}
+
+.unitConfigTooltip {
+	visibility: hidden;
+	width: 300px;
+	background-color: #005;
+	color: #fff;
+	
+	padding: 5px 8px;
+	border-radius: 4px;
+
+	position: absolute;
+	bottom: 125%;
+	left: 0;
+	
+	z-index: 1;
+}
+
+.unitConfig:hover .unitConfigTooltip {
+	visibility: visible;
+}
   </style>
 </head>
 <body>
@@ -37,6 +70,7 @@ canvas {
   <div id="setupDiv"></div>
   <script src="common_utils.js?v=1"></script>
   <script src="units_data.js?v=1"></script>
+  <script src="units_traits.js?v=1"></script>
   <script src="unit.js?v=4"></script>
   <script src="units_utils.js?v=1"></script>
   <script src="main.js?v=4"></script>

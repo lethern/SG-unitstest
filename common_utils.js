@@ -40,6 +40,13 @@ function createCheckbox(parent, bool, css){
 	return elem;
 }
 
+function arrayRemoveObj(array, obj) {
+	const index = array.indexOf(obj);
+	if (index !== -1) {
+		array.splice(index, 1);
+	}
+}
+
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }

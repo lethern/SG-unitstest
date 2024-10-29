@@ -1,10 +1,17 @@
 class Unit {
-	constructor(player, unitName, posX, posY) {
+	/**
+     * @param {number} player
+     * @param {string | number} unitName
+     * @param {number} posX
+     * @param {number} posY
+     */
+	constructor(player, unitName, posX, posY, unitConfig) {
 		this.player = player;
 		this.unitName = unitName;
 		this.posX = posX + (Math.random() * 0.2) - 0.1;
 		this.posY = posY + (Math.random() * 0.2) - 0.1;
 		this.blueprint = gUnits[unitName];
+		this.unitConfig = unitConfig;
 		//
 		this.alive = true;
 		this.attackTarget = null;
@@ -13,15 +20,33 @@ class Unit {
 
 		// current stats
 		this.hp = this.blueprint.health;
+		this.extra_health = this.blueprint.extra_health;
 		this.armor = this.blueprint.armor;
 		this.type = this.blueprint.type;
+		this.energy = this.blueprint.energy;
+		this.max_energy = this.blueprint.energy;
+		UnitsTraits.onConstructor(this);
+	}
+
+	changeEnergy(change) {
+		this.energy += change;
+		if (this.energy < 0) this.energy = 0;
+		if (this.energy > this.max_energy) this.energy = this.max_energy;
+		//UnitsTraits.onChangeEnergy(this);
+	}
+
+	changeHp(change) {
+		this.hp += change;
+		if (this.hp <= 0) {
+			this.alive = false;
+		}
 	}
 
 	update(deltaTimeMs) {
 		if (!this.alive) return;
 
 		this.work(deltaTimeMs);
-		this.draw(deltaTimeMs);
+		this.draw();
 	}
 
 	aquireTarget(deltaTimeMs) {
@@ -61,6 +86,9 @@ class Unit {
 		return this.valSelectedAttack;
 	}
 
+	/**
+     * @param {{ blueprint: { type: any; }; }} unit
+     */
 	selectAttackByType(unit) {
 		for (let att of this.blueprint.attacks) {
 			if (att.target.includes(unit.blueprint.type)) return att;
@@ -75,7 +103,7 @@ class Unit {
 			this.attackTarget = null;
 			return;
 		}
-		let range = selectedAttack.range;
+		let range = UnitsTraits.onRangeCalc(this, selectedAttack);
 		range += (this.blueprint.size || 1.5)/2
 		range += (this.attackTarget.blueprint.size || 1.5)/2
 		if (distance > range) {
@@ -97,8 +125,13 @@ class Unit {
 		if (this.attackWaitingMs <= 0) {
 			this.performAttack(selectedAttack);
 		}
+		var i = 0;
+		i === -0;
 	}
 
+	/**
+     * @param {{ speed: number; damage: number; damage_percentage: number; bonus: {bonus: string; bonus_damage: number;}; }} selectedAttack
+     */
 	performAttack(selectedAttack){
 		this.attackWaitingMs = selectedAttack.speed * 1000;
 
@@ -115,15 +148,19 @@ class Unit {
 			calc_dmg += bonus;
 		}
 
+		calc_dmg = UnitsTraits.onDpsCalc(this, calc_dmg);
+
 		let reduction = damageReductionArmor(this.attackTarget.armor)
 		calc_dmg /= reduction;
 
-		this.attackTarget.hp -= calc_dmg;
-		if (this.attackTarget.hp <= 0) {
-			this.attackTarget.alive = false;
-		}
+		UnitsTraits.onAttackDealt(this, this.attackTarget, calc_dmg);
+
+		this.attackTarget.changeHp(-calc_dmg)
 	}
 
+	/**
+     * @param {any} deltaTimeMs
+     */
 	move(deltaTimeMs) {
 		if (this.player == 0) {
 			this.moveTowards(deltaTimeMs, this.posX, 12);
@@ -132,6 +169,11 @@ class Unit {
 		}
 	}
 
+	/**
+     * @param {number} deltaTimeMs
+     * @param {number} posX
+     * @param {number} posY
+     */
 	moveTowards(deltaTimeMs, posX, posY) {
 		if (!gConfig.canMove) return;
 
@@ -186,6 +228,10 @@ class Unit {
 		}
 	}
 
+	/**
+     * @param {{ posX: any; posY: any; blueprint: any; }} unit1
+     * @param {{ posX: number; posY: number; blueprint: { size: any; }; }} unit2
+     */
 	checkCollision(unit1, unit2) {
 		const dx = unit2.posX - unit1.posX;
 		const dy = unit2.posY - unit1.posY;
@@ -194,6 +240,9 @@ class Unit {
 		return distance < combinedSize;
 	}
 
+	/**
+     * @param {any} deltaTimeMs
+     */
 	work(deltaTimeMs) {
 		if (!this.attackTarget) {
 			this.aquireTarget(deltaTimeMs);
@@ -223,18 +272,36 @@ class Unit {
 			if (this.blueprint.type == 'Air') renderYPos -= size / 1;
 			ctx.drawImage(image, xPos, renderYPos, size, size);
 
+			this.drawWhiteHp(xPos, renderYPos, size);
 			this.drawHp(xPos, renderYPos, size);
+			this.drawEnergy(xPos, renderYPos, size);
 		} catch (e) {
 			gDrawError = true;
 			console.log(e);
 		}
 	}
 
-	drawHp(xPos, yPos, size) {
-		const hpBarWidth = 0.9*size;// 1.5 * gUnitSizeScaling;
+	drawWhiteHp(xPos, yPos, size) {
+		if (!this.blueprint.extra_health) return;
+		const hpBarWidth = 0.9*size;
 		const hpBarHeight = gUnitSizeScaling/8;
 		const hpBarX = xPos + size / 2 - hpBarWidth/2;
-		const hpBarY = yPos - hpBarHeight - 2;
+		const hpBarY = yPos - hpBarHeight - 2 - gUnitSizeScaling / 8;
+
+		const healthRatio = this.extra_health / this.blueprint.extra_health;
+
+		ctx.fillStyle = 'black';
+		ctx.fillRect(hpBarX, hpBarY, hpBarWidth, hpBarHeight);
+
+		ctx.fillStyle = 'white';
+		ctx.fillRect(hpBarX, hpBarY, hpBarWidth * healthRatio, hpBarHeight);
+	}
+
+	drawHp(xPos, yPos, size) {
+		const hpBarWidth = 0.9 * size;
+		const hpBarHeight = gUnitSizeScaling / 8;
+		const hpBarX = xPos + size / 2 - hpBarWidth / 2;
+		const hpBarY = yPos - hpBarHeight - 2 ;
 
 		const healthRatio = this.hp / this.blueprint.health;
 
@@ -245,6 +312,27 @@ class Unit {
 		ctx.fillRect(hpBarX, hpBarY, hpBarWidth * healthRatio, hpBarHeight);
 	}
 
+	drawEnergy(xPos, yPos, size) {
+		if (!this.max_energy) return;
+		const hpBarWidth = 0.9 * size;
+		const hpBarHeight = gUnitSizeScaling / 8;
+		const hpBarX = xPos + size / 2 - hpBarWidth / 2;
+		const hpBarY = yPos - hpBarHeight - 2 + gUnitSizeScaling / 8;
+
+		const healthRatio = this.energy / this.max_energy;
+
+		ctx.fillStyle = 'black';
+		ctx.fillRect(hpBarX, hpBarY, hpBarWidth, hpBarHeight);
+
+		ctx.fillStyle = 'blue';
+		ctx.fillRect(hpBarX, hpBarY, hpBarWidth * healthRatio, hpBarHeight);
+	}
+
+	/**
+     * @param {number} xPos
+     * @param {number} yPos
+     * @param {number} size
+     */
 	drawCircle(xPos, yPos, size) {
 		ctx.beginPath();
 		//ctx.arc(xPos + gridSize / 2, yPos + gridSize / 2, unitRadius, 0, Math.PI * 2);
@@ -256,6 +344,12 @@ class Unit {
 	}
 }
 
+/**
+ * @param {number} posX
+ * @param {number} posY
+ * @param {number} player
+ * @param {string | any[]} targetTypes
+ */
 function findClosestUnit(posX, posY, player, targetTypes) {
 	let min_distance = 10000000;
 	let result = null;
@@ -275,6 +369,31 @@ function findClosestUnit(posX, posY, player, targetTypes) {
 	return { target: result, distance: Math.sqrt(min_distance) };
 }
 
+function findClosestUnitsInRange(posX, posY, player, range, targetTypes, excluded) {
+	let result = [];
+	for (let unit of gMapUnits) {
+		if (unit.player != player) continue;
+		if (!unit.alive) continue;
+		if (!targetTypes.includes(unit.type)) continue;
+		if (excluded.includes(unit)) continue;
+
+		const diffX = unit.posX - posX;
+		const diffY = unit.posY - posY;
+		const distance = Math.sqrt( diffX * diffX + diffY * diffY);
+		if (distance < range) {
+			result.push(unit);
+		}
+	}
+	return result;
+}
+
+/**
+ * @param {number} posX
+ * @param {number} posY
+ * @param {any} player
+ * @param {string | any[]} targetTypes
+ * @param {number} minAllowedDistance
+ */
 function findClosestUnitWithMinimum(posX, posY, player, targetTypes, minAllowedDistance) {
 	let min_distance = 10000000;
 	let result = null;
@@ -294,6 +413,10 @@ function findClosestUnitWithMinimum(posX, posY, player, targetTypes, minAllowedD
 	return { target: result, distance: min_distance };
 }
 
+/**
+ * @param {{ posX: number; posY: number; }} unitA
+ * @param {{ posX: number; posY: number; }} unitB
+ */
 function distanceBetween(unitA, unitB) {
 	let diffX = unitA.posX - unitB.posX;
 	let diffY = unitA.posY - unitB.posY;
@@ -301,6 +424,10 @@ function distanceBetween(unitA, unitB) {
 	return Math.sqrt(distance);
 }
 
+/**
+ * @param {{ bonus: any; }} attack
+ * @param {{ blueprint: { armor_type: string | any[]; }; }} unit
+ */
 function matchingBonusType(attack, unit) {
 	let matching = [];
 	if (attack.bonus) {
@@ -312,7 +439,10 @@ function matchingBonusType(attack, unit) {
 	return matching;
 }
 
+/**
+ * @param {number} armor
+ */
 function damageReductionArmor(armor) {
-	return 1 + armor / 100;
+	return 1 + (armor || 0) / 100;
 	//return (armor * 0.01) / (1 + Math.abs(armor) * 0.01);
 }

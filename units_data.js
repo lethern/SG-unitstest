@@ -19,7 +19,7 @@ const gUnits = {
 			target: ['Air', 'Ground'],
 			damage: 8,
 			speed: 1.5,
-			bonus: [ { bonus: 'Heavy', bonus_damage: 4 }],
+			bonus: [{ bonus: 'Heavy', bonus_damage: 4 }],
 			range: 6,
 		}],
 		abilities: [{
@@ -62,14 +62,14 @@ const gUnits = {
 			target: ['Air'],
 			damage: 8,
 			speed: 1.3,
-			bonus: [ { bonus: 'Light', bonus_damage: 4 }],
+			bonus: [{ bonus: 'Light', bonus_damage: 4 }],
 			range: 6,
 		}, {
 			name: 'Bone Axes',
 			target: ['Ground'],
 			damage: 8,
 			speed: 1.3,
-			bonus: [ { bonus: 'Light', bonus_damage: 4 }],
+			bonus: [{ bonus: 'Light', bonus_damage: 4 }],
 			range: 5,
 		}],
 		extra_info: [{
@@ -104,12 +104,12 @@ const gUnits = {
 		luminite: 250,
 		therium: 125,
 		supply: 6,
-		buildtime:48,
-		speed:3,
+		buildtime: 48,
+		speed: 3,
 		size: 2.75,
-		health:300,
+		health: 300,
 		armor_type: ['Heavy', 'Mechanical'],
-		armor:10,
+		armor: 10,
 		veterancybonushealth: [60, 60, 60],
 		veterancybonusdamage: ['10%', '10%', '10%'],
 		veterancyspecialbonus: ['1 (Deployed) Range', '1 (Deployed) Range', '1 (Deployed) Range'],
@@ -125,7 +125,7 @@ const gUnits = {
 			target: ['Ground'],
 			damage: 80,
 			speed: 5,
-			bonus: [ { bonus: 'Heavy', bonus_damage: 35 }, { bonus: 'Structure', bonus_damage: 35 }],
+			bonus: [{ bonus: 'Heavy', bonus_damage: 35 }, { bonus: 'Structure', bonus_damage: 35 }],
 			range: 16,
 			minimumRange: 5,
 		}],
@@ -204,18 +204,18 @@ const gUnits = {
 			target: ['Ground'],
 			damage: 10,
 			speed: 1.5,
-			bonus: [ {bonus: 'Structure', bonus_damage:5 }, {bonus: 'Light', bonus_damage:5 }],
+			bonus: [{ bonus: 'Structure', bonus_damage: 5 }, { bonus: 'Light', bonus_damage: 5 }],
 			range: 1.5,
 		}],
 		traits: [{
 			name: 'Vanguard Fortified Impaler',
 			desc: "This units attacks deal area damage in a line.",
-		},{
+		}, {
 			name: 'Vanguard Kinetic Redirection',
 			duration: 5,
 			req: ['Research Kinetic Redirection'],
 			desc: "On-Damaged: Increases this unit's attack and movement speed by 5% for 5 seconds. Max 50%.",
-		},{
+		}, {
 			name: 'Vanguard Mitigative Guard',
 			req: ['Research Mitigative Guard'],
 			desc: "On-Damaged: Damage reduced by 2.",
@@ -245,7 +245,7 @@ const gUnits = {
 			target: ["Ground"],
 			damage: 5,
 			speed: 1.4,
-			bonus: [ {bonus: 'Light', bonus_damage: 3 }],
+			bonus: [{ bonus: 'Light', bonus_damage: 3 }],
 			range: 0.1
 		}],
 		abilities: [{
@@ -253,7 +253,7 @@ const gUnits = {
 			cooldown: 40,
 			duration: 10,
 			desc: "Greatly increases the S.C.O.U.T.'s vision radius for 10 seconds."
-		},{
+		}, {
 			name: "Pounce",
 			cooldown: 30,
 			req: ["Research Pounce"],
@@ -262,11 +262,11 @@ const gUnits = {
 		traits: [{
 			name: "Pupper Sense",
 			desc: "This unit can sense nearby enemies under the fog of war."
-		},{
+		}, {
 			name: "Vorillium Claws",
 			req: ["Research Vorillium Claws"],
 			desc: "Increased damage against Light units by +8."
-		},{
+		}, {
 			name: "Detector",
 			desc: "Detects stealthed enemies."
 		}]
@@ -288,15 +288,15 @@ const gUnits = {
 		armor_type: ["Biological", "Light"],
 		armor: 0,
 		veterancybonushealth: [26, 26, 26],
-		veterancybonusdamage: ["10%", "10%","10%"],
-		veterancyspecialbonus: ["0.5 Range", "0.5 Range", "0.5 Range" ],
+		veterancybonusdamage: ["10%", "10%", "10%"],
+		veterancyspecialbonus: ["0.5 Range", "0.5 Range", "0.5 Range"],
 		veterancyxp: [400, 1000, 1800],
 		attacks: [{
 			name: "BR-15 Rifle",
 			target: ["Air", "Ground"],
 			damage: 12,
 			speed: 1,
-			bonus: [ {bonus: 'Heavy', bonus_damage: 6 }],
+			bonus: [{ bonus: 'Heavy', bonus_damage: 6 }],
 			range: 7,
 		}],
 		traits: [{
@@ -320,7 +320,7 @@ const gUnits = {
 		therium: 50,
 		supply: 3,
 		buildtime: 30,
-		speed:4,
+		speed: 4,
 		size: 1.8,
 		health: 200,
 		armor_type: ["Biological", "Heavy", "Mechanical"],
@@ -382,7 +382,7 @@ const gUnits = {
 			name: "UAM-22 Quill Rockets",
 			target: ["Ground"],
 			damage: 10,
-			bonus: [ {bonus: "Heavy", bonus_damage: 5 }],
+			bonus: [{ bonus: "Heavy", bonus_damage: 5 }],
 			speed: 0.3,
 			range: 5
 		}, {
@@ -396,7 +396,7 @@ const gUnits = {
 			name: "Hunker Down",
 			cooldown: 2,
 			desc: "Deploy: Enables the Hedgehog's anti-air attack and decreases its ammo recharge time. Disables its anti-ground attack. Attacks Air",
-		},{
+		}, {
 			name: "Spine Up",
 			cooldown: 2,
 			desc: "Mobilize: Enables the Hedgehog's anti-ground attack and increases its ammo recharge time. Disables its anti-air attack. Attacks Ground",
@@ -405,7 +405,7 @@ const gUnits = {
 			name: "Transonic Boosters",
 			req: ["Research Transonic Rockets"],
 			desc: "+2/+4 weapon range.",
-		},{
+		}, {
 			name: "Vanguard Rocket Ammo",
 			desc: "This unit uses ammo to attack and slowly recharges its ammo over time.",
 		}],
@@ -439,7 +439,7 @@ const gUnits = {
 			target: ["Ground"],
 			damage: 3,
 			speed: 0.25,
-			bonus: [ {bonus: "Light", bonus_damage: 3 }],
+			bonus: [{ bonus: "Light", bonus_damage: 3 }],
 			range: 8,
 		}],
 		abilities: [{
@@ -572,7 +572,7 @@ const gUnits = {
 			target: ["Ground"],
 			damage: 50,
 			speed: 4,
-			bonus: [ { bonus: "Structure", bonus_damage: 50 }],
+			bonus: [{ bonus: "Structure", bonus_damage: 50 }],
 			range: 14,
 		}],
 		traits: [{
@@ -668,7 +668,7 @@ const gUnits = {
 			damage_percentage: 15,
 			speed: 2,
 			range: 2,
-			}, {
+		}, {
 			name: "Serrated Soul Knuckles",
 			target: ["Structure"],
 			damage_percentage: 7.5,
@@ -1165,7 +1165,7 @@ const gUnits = {
 			desc: "Allows Infiltrate to disable multiple structures in a moderate area around the target structure.",
 		}],
 	},
-			
+
 	/*
 	"": {
 		displayName: "",
@@ -1187,4 +1187,24 @@ const gUnits = {
 		}],
 	}
 	*/
-};
+	"Weak dummy": {
+		displayName: 'Weak dummy',
+		faction: 'o',
+		type: 'Ground',
+		speed: 0,
+		size: 1.75,
+		health: 100,
+		attacks: [],
+		armor_type: []
+	},
+	"Tough dummy": {
+		displayName: 'Tough dummy',
+		faction: 'o',
+		type: 'Ground',
+		speed: 0,
+		size: 3.75,
+		health: 3000,
+		attacks: [],
+		armor_type: []
+	}
+}
