@@ -179,12 +179,12 @@ function checkConfig() {
 	gConfig.unitConfigPlayer0 = getConfigData(gSetupSelects.configArrayTop)
 	gConfig.unitConfigPlayer1 = getConfigData(gSetupSelects.configArrayBottom)
 	/**
-     * @param {{ div: HTMLDivElement; checkbox: HTMLInputElement; data: { name: string, desc: string, value: any };  }[]} configArray
+     * @param {{ div: HTMLDivElement; checkbox: HTMLInputElement; data: { name: string, desc: string, value: any, implemented: boolean };  }[]} configArray
      */
 	function getConfigData(configArray) {
 		let config = {};
 		for (let conf of configArray) {
-			if (conf.checkbox.checked) {
+			if (conf.checkbox.checked && conf.data.implemented !== false) {
 				config[conf.data.name] = { desc: conf.data.desc };
 			}
 		}
@@ -310,8 +310,15 @@ function renderUnitAbilitiesConfigs(configs, configDiv, configArray) {
 		let row = createDiv(configDiv);
 		let checkbox = createCheckbox(row, conf.value, '');
 		let configName = createDiv(row, conf.name, 'unitConfig');
-		createSpan(configName, conf.desc, 'unitConfigTooltip');
+		
 		configArray.push({ div: row, checkbox, data: conf })
+		if (conf.implemented === false) {
+			configName.classList.add("disabledConfig")
+			checkbox.disabled = true;
+			createSpan(configName, "not implemented", 'unitConfigTooltip');
+		} else {
+			createSpan(configName, conf.desc, 'unitConfigTooltip');
+		}
 	}
 }
 
@@ -349,7 +356,32 @@ let gUnitsSpecialsImpl = {
 	"Argent": {
 		configOptions: [
 			{ name: "High Energy", desc: "Allows Argents to use High Energy, to deal 100% increased damage for 10 energy.", value: true },
-			{ name: "Research Longshot Module", desc: "Gives Argents +3 range", value: false },
-			{ name: "Research Photo-Capacitors", desc: "Argents +20 energy", value: false }],
+			{ name: "Longshot Module", desc: "Gives Argents +3 range", value: false },
+			{ name: "Photo-Capacitors", desc: "Argents +20 energy", value: false }],
+	},
+	"Gaunt": {
+		configOptions: [
+			{ name: "Bouncing Bone Axes", desc: "Attacks bounce twice, dealing 25% damage", value: true },
+			{ name: "Plague Axe", desc: "Attacked units within Shroud are infected with Infest.", value: false, implemented: false },
+			{ name: "Reaper's Rush", desc: "30% increased movement speed", value: false}
+		]
+	},
+	"Atlas": {
+		configOptions: [
+			{ name: "Deploy BFG", desc: "", value: false, implemented: false },
+			{ name: "Purification Ordnance", desc: "This unit's attacks deal area damage in a circle.", value: true, implemented: false },
+			{ name: "Plasma Arc Infusion", desc: "On-Hit: Lights the ground on fire, dealing 20 damage per second to all units standing in the fire for 5 seconds.", value: false, implemented: false },
+		]
+	},
+	"BOB": {
+		configOptions: [
+			{ name: "Repair", desc: "Restores health to mechanical units and structures.", value: true, implemented: false },
+		]
 	}
+	/*
+		configOptions: [
+			{ name: "", desc: "", value: false },
+		]
+		, implemented: false
+	*/
 }

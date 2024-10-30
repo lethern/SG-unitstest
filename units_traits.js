@@ -37,7 +37,7 @@ class UnitsTraits {
 		let range = attack.range;
 		switch (unit.blueprint.displayName) {
 			case 'Argent':
-				if (unit.unitConfig["Research Longshot Module"]) {
+				if (unit.unitConfig["Longshot Module"]) {
 					if (unit.energy >= 10) {
 						range += 3;
 					}
@@ -50,9 +50,14 @@ class UnitsTraits {
 	static onConstructor(unit) {
 		switch (unit.blueprint.displayName) {
 			case 'Argent':
-				if (unit.unitConfig["Research Photo-Capacitors"]) {
+				if (unit.unitConfig["Photo-Capacitors"]) {
 					unit.energy += 20;
 					unit.max_energy += 20;
+				}
+				break;
+			case 'Gaunt':
+				if (unit.unitConfig["Reaper's Rush"]) {
+					unit.speed *= 1.3;
 				}
 				break;
 		}

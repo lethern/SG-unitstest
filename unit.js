@@ -25,6 +25,7 @@ class Unit {
 		this.type = this.blueprint.type;
 		this.energy = this.blueprint.energy;
 		this.max_energy = this.blueprint.energy;
+		this.speed = this.blueprint.speed;
 		UnitsTraits.onConstructor(this);
 	}
 
@@ -36,6 +37,15 @@ class Unit {
 	}
 
 	changeHp(change) {
+		if (this.extra_health> 0 && change < 0) {
+			this.extra_health += change;
+			if (this.extra_health <= 0) {
+				change = this.extra_health;
+				this.extra_health = 0;
+			} else {
+				change = 0;
+			}
+		}
 		this.hp += change;
 		if (this.hp <= 0) {
 			this.alive = false;
@@ -184,12 +194,10 @@ class Unit {
 		const distance = Math.sqrt(directionX * directionX + directionY * directionY);
 
 		if (distance > 0.05) {
-			let moveX = (directionX / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
-			let moveY = (directionY / distance) * this.blueprint.speed * deltaTimeMs / 1000 * speedScaling;
+			let moveX = (directionX / distance) * this.speed * deltaTimeMs / 1000 * speedScaling;
+			let moveY = (directionY / distance) * this.speed * deltaTimeMs / 1000 * speedScaling;
 
-			const dx = moveX - posX;
-			const dy = moveY - posY;
-			const orig_distance = Math.sqrt(dx * dx + dy * dy);
+			const orig_distance = Math.sqrt(moveX * moveX + moveY * moveY);
 
 			const newX = this.posX + moveX;
 			const newY = this.posY + moveY;
@@ -201,9 +209,9 @@ class Unit {
 					const repelDistance = Math.sqrt(repelX * repelX + repelY * repelY);
 
 					if (repelDistance > 0) {
-						let repulsionStrengthX = 0.02;
-						let repulsionStrengthY = 0.02;
-						if (directionX > directionY) repulsionStrengthY = 0.05; else repulsionStrengthX = 0.05;
+						let repulsionStrengthX = 0.03;
+						let repulsionStrengthY = 0.03;
+						if (directionX > directionY) repulsionStrengthY = 0.06; else repulsionStrengthX = 0.06;
 						moveX += (repelX / repelDistance) * repulsionStrengthX;
 						moveY += (repelY / repelDistance) * repulsionStrengthY;
 					}
@@ -211,13 +219,11 @@ class Unit {
 			}
 
 			// after modifying moveX moveY, normalize to be still within distance
-			const newDirectionX = moveX - posX;
-			const newDirectionY = moveY - posY;
 
-			const newDirectionMagnitude = Math.sqrt(newDirectionX * newDirectionX + newDirectionY * newDirectionY);
+			const newDirectionMagnitude = Math.sqrt(moveX * moveX + moveY * moveY);
 			if (newDirectionMagnitude > 0) {
-				moveX = posX + (newDirectionX / newDirectionMagnitude) * orig_distance;
-				moveY = posY + (newDirectionY / newDirectionMagnitude) * orig_distance;
+				moveX = (moveX / newDirectionMagnitude) * orig_distance;
+				moveY = (moveY / newDirectionMagnitude) * orig_distance;
 			}
 
 			this.posX += moveX;
@@ -259,22 +265,24 @@ class Unit {
 	draw() {
 		if (gDrawError) return;
 		try {
+			const unitSize = (this.blueprint.size || 1.5);
+			let size = unitSize * gUnitSizeScaling;
+
 			const xPos = this.posX * gUnitSizeScaling;
 			const yPos = this.posY * gUnitSizeScaling;
 			const image = gImages[this.unitName].img;
 
-			const unitSize = (this.blueprint.size || 1.5);
-			let size = unitSize * gUnitSizeScaling;
+			
 
 			this.drawCircle(xPos, yPos, size);
 
 			let renderYPos = yPos - (size / 5);
 			if (this.blueprint.type == 'Air') renderYPos -= size / 1;
-			ctx.drawImage(image, xPos, renderYPos, size, size);
+			ctx.drawImage(image, xPos - size / 2, renderYPos - size / 2, size, size);
 
-			this.drawWhiteHp(xPos, renderYPos, size);
-			this.drawHp(xPos, renderYPos, size);
-			this.drawEnergy(xPos, renderYPos, size);
+			this.drawWhiteHp(xPos - size / 2, renderYPos - size / 2, size);
+			this.drawHp(xPos - size / 2, renderYPos - size / 2, size);
+			this.drawEnergy(xPos - size / 2, renderYPos - size / 2, size);
 		} catch (e) {
 			gDrawError = true;
 			console.log(e);
@@ -336,7 +344,10 @@ class Unit {
 	drawCircle(xPos, yPos, size) {
 		ctx.beginPath();
 		//ctx.arc(xPos + gridSize / 2, yPos + gridSize / 2, unitRadius, 0, Math.PI * 2);
-		ctx.ellipse(xPos + size / 2, yPos + size / 2, size / 2, size / 2 * 0.7, 0, 0, Math.PI * 2);
+		//ctx.ellipse(xPos + size / 2, yPos + size / 2, size / 2, size / 2 * 0.7, 0, 0, Math.PI * 2);
+
+		//ctx.ellipse(xPos, yPos, size / 2, size / 2 * 0.7, 0, 0, Math.PI * 2);
+		ctx.ellipse(xPos, yPos, size / 2, size / 2, 0, 0, Math.PI * 2);
 		ctx.strokeStyle = this.player ? 'red' : '#0000AA';
 		ctx.lineWidth = 2;
 		ctx.stroke();
