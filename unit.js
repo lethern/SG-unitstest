@@ -12,6 +12,8 @@ class Unit {
 		this.posY = posY + (Math.random() * 0.2) - 0.1;
 		this.blueprint = gUnits[unitName];
 		this.unitConfig = unitConfig;
+		this.cooldowns_map = {};
+		this.flags = {};
 		//
 		this.alive = true;
 		this.attackTarget = null;
@@ -37,6 +39,7 @@ class Unit {
 	}
 
 	changeHp(change) {
+		change = UnitsTraits.onChangeHp(this, change);
 		if (this.extra_health> 0 && change < 0) {
 			this.extra_health += change;
 			if (this.extra_health <= 0) {
@@ -50,6 +53,24 @@ class Unit {
 		if (this.hp <= 0) {
 			this.alive = false;
 		}
+		if (this.hp > this.blueprint.health) this.hp = this.blueprint.health;
+	}
+
+	isCooldownReady(name) {
+		if (!this.cooldowns_map[name]) return true;
+		return gCurrentTime > this.cooldowns_map[name];
+	}
+	setCooldown(name, time_s) {
+		this.cooldowns_map[name] = gCurrentTime + time_s * 1000;
+		console.log('cooldown (' + name + ') set for ' + time_s + ' -> ' + this.cooldowns_map[name] + ' (current ' + gCurrentTime+')')
+	}
+
+	setFlag(name, value) {
+		this.flags[name] = value;
+	}
+
+	getFlag(name) {
+		return this.flags[name];
 	}
 
 	update(deltaTimeMs) {
@@ -135,8 +156,6 @@ class Unit {
 		if (this.attackWaitingMs <= 0) {
 			this.performAttack(selectedAttack);
 		}
-		var i = 0;
-		i === -0;
 	}
 
 	/**
@@ -147,21 +166,28 @@ class Unit {
 
 		let calc_dmg = 0;
 		if (selectedAttack.damage) {
-			calc_dmg = selectedAttack.damage;
+			calc_dmg = UnitsTraits.onGetAttackDmg(this, selectedAttack);
 		}
 		if (selectedAttack.damage_percentage) {
 			calc_dmg = this.attackTarget.blueprint.health * selectedAttack.damage_percentage / 100;
 		}
 
+		let debug_calc_dmg1 = calc_dmg;
+		let debug_bonus = 0;
+
 		let matchingBonus = matchingBonusType(selectedAttack, this.attackTarget);
-		for (let bonus of matchingBonus) {
-			calc_dmg += bonus;
+		for (let { bonus, bonus_damage } of matchingBonus) {
+			let calc_bonus = UnitsTraits.onGetAttackBonusDmg(this, selectedAttack, bonus_damage, bonus);
+			calc_dmg += calc_bonus;
+			debug_bonus += calc_bonus;
 		}
 
 		calc_dmg = UnitsTraits.onDpsCalc(this, calc_dmg);
 
 		let reduction = damageReductionArmor(this.attackTarget.armor)
 		calc_dmg /= reduction;
+
+		console.log(this.blueprint.name + ' dealt ' + calc_dmg + ' damage ' + `(raw: ${debug_calc_dmg1}, bonus: ${debug_bonus}, reduction: ${(1 - (1 / reduction)) * 100}%)`)
 
 		UnitsTraits.onAttackDealt(this, this.attackTarget, calc_dmg);
 
@@ -444,7 +470,7 @@ function matchingBonusType(attack, unit) {
 	if (attack.bonus) {
 		for (let b of attack.bonus) {
 			if (unit.blueprint.armor_type.includes[b.bonus])
-				matching.push(b.bonus_damage);
+				matching.push(b);
 		}
 	}
 	return matching;

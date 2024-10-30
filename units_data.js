@@ -1,5 +1,6 @@
 const gUnits = {
 	"Argent": {
+		name: "Argent",
 		displayName: "Argent",
 		built: ["Creation Chamber"],
 		faction: "c",
@@ -41,6 +42,7 @@ const gUnits = {
 		}],
 	},
 	"Gaunt": {
+		name: "Gaunt",
 		displayName: "Gaunt",
 		built: ["Conclave"],
 		faction: "i",
@@ -95,6 +97,7 @@ const gUnits = {
 		}],
 	},
 	"Atlas": {
+		name: 'Atlas',
 		displayName: 'Atlas',
 		built: ['Mech Bay'],
 		faction: 'v',
@@ -150,6 +153,7 @@ const gUnits = {
 		}],
 	},
 	"BOB": {
+		name: 'BOB',
 		displayName: 'B.O.B.',
 		built: ['Command Post', 'Central Command', 'High Command'],
 		faction: 'v',
@@ -181,6 +185,7 @@ const gUnits = {
 		}],
 	},
 	"Lancer": {
+		name: 'Lancer',
 		displayName: 'Lancer',
 		built: ['Barracks'],
 		faction: 'v',
@@ -208,20 +213,21 @@ const gUnits = {
 			range: 1.5,
 		}],
 		traits: [{
-			name: 'Vanguard Fortified Impaler',
+			name: 'Fortified Impaler',
 			desc: "This units attacks deal area damage in a line.",
 		}, {
-			name: 'Vanguard Kinetic Redirection',
+			name: 'Kinetic Redirection',
 			duration: 5,
 			req: ['Research Kinetic Redirection'],
 			desc: "On-Damaged: Increases this unit's attack and movement speed by 5% for 5 seconds. Max 50%.",
 		}, {
-			name: 'Vanguard Mitigative Guard',
+			name: 'Mitigative Guard',
 			req: ['Research Mitigative Guard'],
 			desc: "On-Damaged: Damage reduced by 2.",
 		}],
 	},
 	"SCOUT": {
+		name: "SCOUT",
 		displayName: "S.C.O.U.T.",
 		built: ["Barracks"],
 		faction: "v",
@@ -272,6 +278,7 @@ const gUnits = {
 		}]
 	},
 	"Exo": {
+		name: "Exo",
 		displayName: "Exo",
 		built: ["Barracks"],
 		faction: "v",
@@ -310,6 +317,7 @@ const gUnits = {
 		}],
 	},
 	"MedTech": {
+		name: "MedTech",
 		displayName: "MedTech",
 		built: ["Barracks"],
 		faction: "v",
@@ -360,6 +368,7 @@ const gUnits = {
 		}],
 	},
 	"Hedgehog": {
+		name: "Hedgehog",
 		displayName: "Hedgehog",
 		built: ["Mech Bay"],
 		faction: "v",
@@ -406,7 +415,7 @@ const gUnits = {
 			req: ["Research Transonic Rockets"],
 			desc: "+2/+4 weapon range.",
 		}, {
-			name: "Vanguard Rocket Ammo",
+			name: "Rocket Ammo",
 			desc: "This unit uses ammo to attack and slowly recharges its ammo over time.",
 		}],
 		extra_info: [{
@@ -415,6 +424,7 @@ const gUnits = {
 		}],
 	},
 	"Vulcan": {
+		name: "Vulcan",
 		displayName: "Vulcan",
 		built: ["Mech Bay"],
 		faction: "v",
@@ -459,10 +469,11 @@ const gUnits = {
 		}],
 		extra_info: [{
 			name: "Attack winding up",
-			desc: "Phase 1 damage: 3 (+3 vs Light), Phase 2 damage: 4 (+4 vs Light), Phase 3 damage: 6 (+6 vs Light). Loses windup after 1second of not attacking."
+			desc: "Phase 1 damage: 3 (+3 vs Light), Phase 2 damage: 4 (+4 vs Light), Phase 3 damage: 6 (+6 vs Light). Loses windup after 1 second of not attacking."
 		}]
 	},
 	"Brute": {
+		name: "Brute",
 		displayName: "Brute",
 		built: ["Iron Vault"],
 		faction: "i",
@@ -504,6 +515,7 @@ const gUnits = {
 		}]
 	},
 	"Magmadon": {
+		name: "Magmadon",
 		displayName: "Magmadon",
 		built: ["Iron Vault"],
 		faction: "i",
@@ -550,6 +562,7 @@ const gUnits = {
 		}],
 	},
 	"Hellborne": {
+		name: "Hellborne",
 		displayName: "Hellborne",
 		built: ["Iron Vault"],
 		faction: "i",
@@ -586,6 +599,7 @@ const gUnits = {
 		}],
 	},
 	"Hexen": {
+		name: "Hexen",
 		displayName: "Hexen",
 		built: ["Conclave"],
 		faction: "i",
@@ -642,6 +656,7 @@ const gUnits = {
 		}],
 	},
 	"Weaver": {
+		name: "Weaver",
 		displayName: "Weaver",
 		built: ["Conclave"],
 		faction: "i",
@@ -704,6 +719,7 @@ const gUnits = {
 		}],
 	},
 	"Imp": {
+		name: "Imp",
 		displayName: "Imp",
 		built: ["Shrine", "Greater Shrine", "Elder Shrine"],
 		faction: "i",
@@ -736,6 +752,7 @@ const gUnits = {
 		}],
 	},
 	"Kri": {
+		name: "Kri",
 		displayName: "Kri",
 		built: ["Creation Chamber"],
 		faction: "c",
@@ -775,6 +792,7 @@ const gUnits = {
 		}],
 	},
 	"Scanner": {
+		name: "Scanner",
 		displayName: "Scanner",
 		built: ["Creation Chamber"],
 		faction: "c",
@@ -822,6 +840,7 @@ const gUnits = {
 		}],
 	},
 	"Cabal": {
+		name: "Cabal",
 		displayName: "Cabal",
 		built: ["Creation Chamber"],
 		faction: "c",
@@ -870,6 +889,7 @@ const gUnits = {
 		}],
 	},
 	"Seraphim": {
+		name: "Seraphim",
 		displayName: "Seraphim",
 		built: ["Legion Hall"],
 		faction: "c",
@@ -916,6 +936,7 @@ const gUnits = {
 		}],
 	},
 	"Animancer": {
+		name: "Animancer",
 		displayName: "Animancer",
 		built: ["Legion Hall"],
 		faction: "c",
@@ -965,6 +986,7 @@ const gUnits = {
 		}],
 	},
 	"Archangel": {
+		name: "Archangel",
 		displayName: "Archangel",
 		built: ["Legion Hall"],
 		faction: "c",
@@ -1021,6 +1043,7 @@ const gUnits = {
 		}],
 	},
 	"Saber": {
+		name: "Saber",
 		displayName: "Saber",
 		built: ["Starforge"],
 		faction: "c",
@@ -1064,6 +1087,7 @@ const gUnits = {
 		}],
 	},
 	"Vector": {
+		name: "Vector",
 		displayName: "Vector",
 		built: ["Starforge"],
 		faction: "c",
@@ -1112,6 +1136,7 @@ const gUnits = {
 		}],
 	},
 	"Graven": {
+		name: "Graven",
 		displayName: "Graven",
 		built: ["Barracks"],
 		faction: "v",
@@ -1188,6 +1213,7 @@ const gUnits = {
 	}
 	*/
 	"Weak dummy": {
+		name: 'Weak dummy',
 		displayName: 'Weak dummy',
 		faction: 'o',
 		type: 'Ground',
@@ -1198,6 +1224,7 @@ const gUnits = {
 		armor_type: []
 	},
 	"Tough dummy": {
+		name: 'Tough dummy',
 		displayName: 'Tough dummy',
 		faction: 'o',
 		type: 'Ground',
