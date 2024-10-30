@@ -132,7 +132,7 @@ function setupComplete(){
 
 	let startingX = 3;
 	let posX = startingX;
-	let posY = 1;
+	let posY = 3;
 	for (let {count, select} of gSetupSelects.top) {
 		let _count = +count.value;
 
@@ -153,7 +153,7 @@ function setupComplete(){
 	/////////
 
 	posX = startingX;
-	posY = 11;
+	posY = 13;
 
 	for (let { count, select } of gSetupSelects.bottom) {
 		let _count = +count.value;
