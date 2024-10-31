@@ -1,4 +1,5 @@
 const canvas = document.getElementById('gameCanvas');
+// @ts-ignore
 const ctx = canvas.getContext('2d');
 
 let gConfig = {
@@ -55,8 +56,9 @@ function loadSignal(id) {
  * @param {HTMLDivElement} parentDiv
  * @param {string} where
  * @param {HTMLDivElement} [wrap]
+ * @param {boolean} [dont_add_plus]
  */
-function addSelectionRow(parentDiv, where, wrap) {
+function addSelectionRow(parentDiv, where, wrap, dont_add_plus) {
 	let container;
 	let faction;
 	if (where == 'top') {
@@ -73,17 +75,19 @@ function addSelectionRow(parentDiv, where, wrap) {
 		wrap = createDiv(parentDiv);
 	}
 
-	let newGroup = createDiv(parentDiv, '')
+	let newGroup = dont_add_plus ? null : createDiv(parentDiv, '')
 
-	container.push({
+	let item = {
 		count: renderCount(wrap),
 		select: renderUnitsDropdown(wrap, faction),
-		remove: function() {
+		remove: function () {
 			wrap.remove();
 			this.plus.remove();
 		},
-		plus: createBtn(newGroup, '+', 'btn', () => addSelectionRow(parentDiv, where, newGroup))
-	})
+		plus: dont_add_plus ? null : createBtn(newGroup, '+', 'btn', () => addSelectionRow(parentDiv, where, newGroup))
+	}
+	container.push(item)
+	return item;
 }
 /**
  * @param {any} div
@@ -103,7 +107,7 @@ function setup() {
 
 	createDiv(setupDiv, 'Top army', 'configHead');
 	let factionTop = gSetupSelects.factionTop = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial', 'Other'])
-	let topWrap = createDiv(setupDiv);
+	let topWrap = gSetupSelects.topWrap = createDiv(setupDiv);
 	factionTop.addEventListener('change', () => { gSetupSelects.top.forEach(s => s.remove()); gSetupSelects.top = []; addSelectionRow(topWrap, 'top'); checkUnitAbilities(); })
 	addSelectionRow(topWrap, 'top')
 
@@ -112,7 +116,7 @@ function setup() {
 
 	createDiv(setupDiv, 'Bottom army', 'configHead');
 	let factionBottom = gSetupSelects.factionBottom = renderSelectionDropdown(setupDiv, ['Vanguard', 'Infernal', 'Celestial', 'Other'])
-	let bottomWrap = createDiv(setupDiv);
+	let bottomWrap = gSetupSelects.bottomWrap =createDiv(setupDiv);
 	factionBottom.addEventListener('change', () => { gSetupSelects.bottom.forEach(s => s.remove()); gSetupSelects.bottom = []; addSelectionRow(bottomWrap, 'bottom'); checkUnitAbilities(); })
 	addSelectionRow(bottomWrap, 'bottom')
 
@@ -121,6 +125,10 @@ function setup() {
 
 	gSetupSelects.btnGo = createBtn(createDiv(setupDiv, '', 'spaced'), 'Go', 'btn')
 	gSetupSelects.btnGo.onclick = setupComplete;
+
+	let downBtns = createDiv(setupDiv, '', 'spaced')
+	gSetupSelects.btnGo = createBtn(downBtns, 'Share-link', 'btn')
+	gSetupSelects.btnGo.onclick = Serialization.doShareLink;
 }
 
 function setupComplete(){
@@ -176,6 +184,148 @@ function setupComplete(){
 	gameLoop(0);
 }
 
+class Serialization {
+
+	static doShareLink() {
+		let state = JSON.stringify(Serialization.serialize());
+		let encoded = Serialization.encode(state);
+		console.log('serialize: ' + state + ', encoded: ' + encoded)
+		const url = new URL(window.location.href);
+		url.searchParams.set('q', encoded);
+		window.history.replaceState({}, '', url);
+
+		navigator.clipboard.writeText(window.location.href);
+		Serialization.parseShareLink();
+	}
+
+	static parseShareLink() {
+		const url = new URL(window.location.href);
+		const param = url.searchParams.get('q');
+		if (!param) return;
+		let decoded = Serialization.decode(decodeURIComponent(param));
+		try {
+			let state = JSON.parse(decoded);
+			console.log('deserialize: ', state, ', decode: ' + decoded + ', url: ' + param);
+			Serialization.deserialize(state)
+		} catch (e) {
+		}
+	}
+
+	static encode(str) {
+		return btoa(str);
+	}
+
+	static decode(str) {
+		return atob(str);
+	}
+
+	static serialize() {
+		return {
+			...Serialization.serializeConfig(),
+			...Serialization.serializeUnits(),
+		};
+	}
+
+	static deserialize(save) {
+		Serialization.deserializeFaction(save);
+		Serialization.deserializeUnits(save);
+		checkUnitAbilities();
+		Serialization.deserializeConfig(save);
+	}
+
+	static serializeUnits() {
+		let units_t = [];
+		for (let { count, select } of gSetupSelects.top) {
+			let _count = +count.value;
+			let name = select.value;
+			units_t.push([_count, gUnitsSpecials[name].compressionSymbol]);
+		}
+
+		let units_b = [];
+		for (let { count, select } of gSetupSelects.bottom) {
+			let _count = +count.value;
+			let name = select.value;
+			units_b.push([_count, gUnitsSpecials[name].compressionSymbol]);
+		}
+		return { ut: units_t, ub: units_b };
+	}
+
+	static deserializeUnits(save) {
+		gSetupSelects.topWrap.innerHTML = '';
+		gSetupSelects.bottomWrap.innerHTML = '';
+		gSetupSelects.top = [];
+		Serialization.deserializeUnitsImpl(save.ut, 'top', gSetupSelects.topWrap)
+		gSetupSelects.bottom = [];
+		Serialization.deserializeUnitsImpl(save.ub, 'bottom', gSetupSelects.bottomWrap)
+	}
+
+	static decodeCompressionSymbol_unit(symbol) {
+		for (let it in gUnitsSpecials) {
+			let elem = gUnitsSpecials[it];
+			if (elem.compressionSymbol == symbol) return it;
+		}
+	}
+
+	static deserializeUnitsImpl(save, where, wrap) {
+		for (let i = 0; i < save.length; ++i) {
+
+			let [_count, compressionSymbol] = save[i];
+			let row = addSelectionRow(wrap, where, null, (i != save.length - 1 ? true : false));
+			row.count.value = _count;
+			row.select.value = Serialization.decodeCompressionSymbol_unit(compressionSymbol);
+		}
+	}
+
+	static serializeConfig() {
+		return {
+			ct: Serialization.serializeConfigImpl(gSetupSelects.configArrayTop),
+			cb: Serialization.serializeConfigImpl(gSetupSelects.configArrayBottom),
+			ft: Serialization.serializeFactionStr(gSetupSelects.factionTop.value),
+			fb: Serialization.serializeFactionStr(gSetupSelects.factionBottom.value),
+		}
+	}
+
+	static serializeConfigImpl(configArray) {
+		let save = [];
+		for (let conf of configArray) {
+			if (conf.checkbox.checked && conf.data.implemented !== false) {
+				save.push(conf.data.compressionSymbol);
+			}
+		}
+		return save;
+	}
+	static serializeFactionStr(faction) {
+		switch (faction) {
+			case 'Vanguard': return 'v';
+			case 'Infernal': return 'i';
+			case 'Celestial': return 'c';
+			case 'Other': return 'o';
+		}
+	}
+	static deserializeFactionStr(faction) {
+		switch (faction) {
+			case 'v': return 'Vanguard';
+			case 'i': return 'Infernal';
+			case 'c': return 'Celestial';
+			case 'o': return 'Other';
+		}
+	}
+	static deserializeFaction(save) {
+		gSetupSelects.factionTop.value = Serialization.deserializeFactionStr(save.ft);
+		gSetupSelects.factionBottom.value = Serialization.deserializeFactionStr(save.fb);
+	}
+	static deserializeConfig(save) {
+		if (!save) return;
+		Serialization.deserializeConfigImpl(save.ct, gSetupSelects.configArrayTop);
+		Serialization.deserializeConfigImpl(save.cb, gSetupSelects.configArrayBottom);
+	}
+	static deserializeConfigImpl(save, configArray) {
+		if (!save) return;
+		for (let conf of configArray) {
+			conf.checkbox.checked = save.includes(conf.data.compressionSymbol)
+		}
+	}
+}
 function checkConfig() {
 	gConfig.unitConfigPlayer0 = getConfigData(gSetupSelects.configArrayTop)
 	gConfig.unitConfigPlayer1 = getConfigData(gSetupSelects.configArrayBottom)
@@ -265,8 +415,8 @@ function checkUnitAbilities() {
 	}
 	let configs = [];
 	for (let name in unitsMap) {
-		if (gUnitsSpecialsImpl[name] && gUnitsSpecialsImpl[name].configOptions) {
-			configs.push(...gUnitsSpecialsImpl[name].configOptions);
+		if (gUnitsSpecials[name] && gUnitsSpecials[name].configOptions) {
+			configs.push(...gUnitsSpecials[name].configOptions);
 		}
 	}
 	renderUnitAbilitiesConfigs(configs, gSetupSelects.configTopDiv, gSetupSelects.configArrayTop);
@@ -279,8 +429,8 @@ function checkUnitAbilities() {
 	}
 	configs = [];
 	for (let name in unitsMap) {
-		if (gUnitsSpecialsImpl[name] && gUnitsSpecialsImpl[name].configOptions) {
-			configs.push(...gUnitsSpecialsImpl[name].configOptions);
+		if (gUnitsSpecials[name] && gUnitsSpecials[name].configOptions) {
+			configs.push(...gUnitsSpecials[name].configOptions);
 		}
 	}
 	renderUnitAbilitiesConfigs(configs, gSetupSelects.configBottomDiv, gSetupSelects.configArrayBottom);
@@ -332,6 +482,7 @@ function gameLoop(timestamp) {
 	lastTime = timestamp;
 	if (deltaTimeMs > 125) deltaTimeMs = 125;
 
+	// @ts-ignore
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	gMapUnits.forEach(u => u.update(deltaTimeMs));
@@ -353,180 +504,4 @@ function gameLoop(timestamp) {
 
 loadImgs();
 setup();
-
-let gUnitsSpecialsImpl = {
-	"Argent": {
-		configOptions: [
-			{ name: "High Energy", desc: "Allows Argents to use High Energy, to deal 100% increased damage for 10 energy.", value: true },
-			{ name: "Longshot Module", desc: "Gives Argents +3 range", value: false },
-			{ name: "Photo-Capacitors", desc: "Argents +20 energy", value: false }],
-	},
-	"Gaunt": {
-		configOptions: [
-			{ name: "Bouncing Bone Axes", desc: "Attacks bounce twice, dealing 25% damage", value: true },
-			{ name: "Plague Axe", desc: "Attacked units within Shroud are infected with Infest.", value: false, implemented: false },
-			{ name: "Reaper's Rush", desc: "30% increased movement speed", value: false }
-		]
-	},
-	"Atlas": {
-		configOptions: [
-			{ name: "Deploy BFG", desc: "", value: false, implemented: false },
-			{ name: "Purification Ordnance", desc: "This unit's attacks deal area damage in a circle.", value: true, implemented: false },
-			{ name: "Plasma Arc Infusion", desc: "On-Hit: Lights the ground on fire, dealing 20 damage per second to all units standing in the fire for 5 seconds.", value: false, implemented: false },
-		]
-	},
-	"BOB": {
-		configOptions: [
-			{ name: "Repair", desc: "Restores health to mechanical units and structures.", value: true, implemented: false },
-		]
-	},
-	"Lancer": {
-		configOptions: [
-			{ name: "Fortified Impaler", desc: "This units attacks deal area damage in a line.", value: true, implemented: false },
-			{ name: "Kinetic Redirection", desc: "On-Damaged: Increases this unit's attack and movement speed by 5% for 5 seconds. Max 50%.", value: false, implemented: false },
-			{ name: "Mitigative Guard", desc: "On-Damaged: Damage reduced by 2.", value: false, implemented: false },
-		]
-	},
-	"SCOUT": {
-		configOptions: [
-			{ name: "Pounce", desc: "Intercepts a nearby enemy unit, increasing this unit's movement speed by 25% and dealing 15 (+15 vs Light) bonus damage on impact.", value: true, implemented: false },
-			{ name: "Vorillium Claws", desc: "Increased damage against Light units by +8.", value: false, implemented: false },
-
-		]
-	},
-	"Exo": {
-		configOptions: [
-			{ name: "Quickdraw Hustle", desc: "On-Attack: Gains 25% bonus movement speed for 2 seconds.", value: false, implemented: false },
-			{ name: "Survival Protocol", desc: "This unit can negate fatal damage once every 120 seconds.", value: false },
-		]
-	},
-	"MedTech": {
-		configOptions: [
-			{ name: "Med Patch", desc: "", value: true, implemented: false },
-			{ name: "Nanoswarm", desc: "", value: false, implemented: false },
-			{ name: "System Shock", desc: "", value: false, implemented: false },
-		]
-	},
-	"Hedgehog": {
-		configOptions: [
-			{ name: "Hunker Down", desc: "", value: true, implemented: false },
-			{ name: "Spine Up", desc: "", value: true, implemented: false },
-			{ name: "Transonic Boosters", desc: "+2/+4 weapon range.", value: false, implemented: false },
-			{ name: "Rocket Ammo", desc: "This unit uses ammo to attack and slowly recharges its ammo over time.", value: false, implemented: false },
-		]
-	},
-	"Vulcan": {
-		configOptions: [
-			{ name: "Jump Jets", desc: "", value: true, implemented: false },
-			{ name: "Vulcan Barrage", desc: "", value: false, implemented: false },
-			{ name: "Peak Performance", desc: "", value: false, implemented: false },
-			{ name: "Attack winding up", desc: "Phase 1 damage: 3 (+3 vs Light), Phase 2 damage: 4 (+4 vs Light), Phase 3 damage: 6 (+6 vs Light). Loses windup after 1 second of not attacking.", value: true},
-		]
-	},
-	"Brute": {
-		configOptions: [
-			{ name: "Sunder Soul", desc: "", value: true, implemented: false },
-			{ name: "Soulforge Ascendance", desc: "", value: false, implemented: false },
-			{ name: "Sundering Soul Craze", desc: "", value: false, implemented: false },
-		]
-	},
-	"Magmadon": {
-		configOptions: [
-			{ name: "Trample", desc: "Goes into a rampage, pushing nearby units out of the Magmadon's path and dealing 100 (+80 vs Heavy) damage over 6 seconds to nearby enemy ground units.", value: true, implemented: false },
-			{ name: "Consume", desc: "Sacrifice a nearby Felhog or Fiend, recovering 100% of max White Health instantly.", value: true, implemented: false },
-			{ name: "Demonhoof Tremors", desc: "Allows Trample to periodically stun nearby enemy ground units.", value: false, implemented: false },
-			{ name: "Raging Tendons", desc: "25% increased movement speed.", value: false, implemented: false },
-		]
-	},
-	"Hellborne": {
-		configOptions: [
-			{ name: "Shatter", desc: "This unit's attack shatter on impact, dealing 25% of its primary damage to units behind the target.", value: true, implemented: false },
-			{ name: "Molten Touch", desc: "On-Hit: Lights target on fire, dealing 8 damage per second for 3 seconds.", value: false, implemented: false },
-		]
-	},
-	"Hexen": {
-		configOptions: [
-			{ name: "Skull of Shedda", desc: "", value: true, implemented: false },
-			{ name: "Venom Trap", desc: "", value: true, implemented: false },
-			{ name: "Miasma", desc: "Covers a target area in bubbling ash and tar. Enemy ground units in the area will be Infested and take 700% bonus damage from Infest. This unit must channel this ability draining 4 energy per second.", value: false, implemented: false },
-			{ name: "Shroudweave", desc: "", value: false, implemented: false },
-		]
-	},
-	"Weaver": {
-		configOptions: [
-			{ name: "Lash", desc: "", value: true, implemented: false },
-			{ name: "Consume", desc: "", value: false, implemented: false },
-			{ name: "Shroudweave", desc: "", value: false, implemented: false },
-			{ name: "Shroudwalk", desc: "", value: false, implemented: false },
-		]
-	},
-	"Imp": {
-		configOptions: [
-			{ name: "Flame On", desc: "", value: true, implemented: false },
-		]
-	},
-	"Kri": {
-		configOptions: [
-			{ name: "Roll Out", desc: "", value: false, implemented: false },
-			{ name: "Blaze of Light", desc: "", value: true, implemented: false },
-			{ name: "Radiant Fury", desc: "", value: false, implemented: false },
-		]
-	},
-	"Cabal": {
-		configOptions: [
-			{ name: "Debilitate", desc: "", value: true, implemented: false },
-			{ name: "Gravity Flux", desc: "", value: false, implemented: false },
-			{ name: "Mind Shackle", desc: "", value: false, implemented: false },
-		]
-	},
-	"Seraphim": {
-		configOptions: [
-			{ name: "Condemnation", desc: "", value: true, implemented: false },
-			{ name: "Resolute Seal", desc: "", value: false, implemented: false },
-			{ name: "Winged Dash", desc: "", value: true, implemented: false },
-			{ name: "Creepbane Guard", desc: "", value: true, implemented: false },
-		]
-	},
-	"Animancer": {
-		configOptions: [
-			{ name: "Animus Redistribution", desc: "", value: true, implemented: false },
-			{ name: "Unseen Veil", desc: "", value: false, implemented: false },
-			{ name: "Dark Prophecy", desc: "", value: false, implemented: false },
-		]
-	},
-	"Archangel": {
-		configOptions: [
-			{ name: "Angelic Descent", desc: "", value: true, implemented: false },
-			{ name: "Angelic Ascent", desc: "", value: true, implemented: false },
-			{ name: "Meteor Strike", desc: "", value: true, implemented: false },
-			{ name: "Avatar", desc: "", value: true, implemented: false },
-			{ name: "Scorched Earth", desc: "", value: false, implemented: false },
-		]
-	},
-	"Saber": {
-		configOptions: [
-			{ name: "Dark Matter Distortion", desc: "This unit's attack deals 50% of its damage to adjacent enemies.", value: true, implemented: false },
-		]
-	},
-	"Vector": {
-		configOptions: [
-			{ name: "Delta Jump", desc: "", value: true, implemented: false },
-			{ name: "Recall", desc: "", value: false, implemented: false },
-			{ name: "Trichotomic Barrage", desc: "This unit fires three missles with each attack.", value: true },
-			{ name: "Recall Potential", desc: "", value: false, implemented: false },
-		]
-	},
-	"Graven": {
-		configOptions: [
-			{ name: "Sticky Bomb", desc: "", value: true, implemented: false },
-			{ name: "Infiltrate", desc: "", value: true, implemented: false },
-			{ name: "Mass Infiltration", desc: "", value: false, implemented: false },
-		]
-	}
-	/*
-		configOptions: [
-			{ name: "", desc: "", value: false, implemented: false },
-		]
-		
-	*/
-}
+Serialization.parseShareLink();

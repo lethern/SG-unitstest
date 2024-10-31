@@ -39,6 +39,8 @@ class Unit {
 	}
 
 	changeHp(change) {
+		if (!this.alive) return;
+
 		change = UnitsTraits.onChangeHp(this, change);
 		if (this.extra_health> 0 && change < 0) {
 			this.extra_health += change;
@@ -159,7 +161,7 @@ class Unit {
 	}
 
 	/**
-     * @param {{ speed: number; damage: number; damage_percentage: number; bonus: {bonus: string; bonus_damage: number;}; }} selectedAttack
+     * @param {{ speed: number; damage: number; damage_percentage: number; bonus: {bonus: string; bonus_damage: number;}; projectile_speed: number; }} selectedAttack
      */
 	performAttack(selectedAttack){
 		this.attackWaitingMs = selectedAttack.speed * 1000;
@@ -187,11 +189,17 @@ class Unit {
 		let reduction = damageReductionArmor(this.attackTarget.armor)
 		calc_dmg /= reduction;
 
-		console.log(this.blueprint.name + ' dealt ' + calc_dmg + ' damage ' + `(raw: ${debug_calc_dmg1}, bonus: ${debug_bonus}, reduction: ${(1 - (1 / reduction)) * 100}%)`)
+		//if (selectedAttack.projectile_speed) {
 
-		UnitsTraits.onAttackDealt(this, this.attackTarget, calc_dmg);
+		//} else
+		{
+			console.log(this.blueprint.name + ' dealt ' + calc_dmg + ' damage ' + `(raw: ${debug_calc_dmg1}, bonus: ${debug_bonus}, reduction: ${(1 - (1 / reduction)) * 100}%)`)
 
-		this.attackTarget.changeHp(-calc_dmg)
+			UnitsTraits.onAttackDealt(this, this.attackTarget, calc_dmg);
+
+			this.attackTarget.changeHp(-calc_dmg)
+		}
+		
 	}
 
 	/**
