@@ -46,7 +46,7 @@ class UnitsTraits {
 		// TARGET
 		switch (target.blueprint.name) {
 			case 'Lancer':
-				if (unit.unitConfig["Mitigative Guard"]) {
+				if (target.unitConfig["Mitigative Guard"]) {
 					calc_dmg -= 2;
 					if (calc_dmg < 0) calc_dmg = 0;
 				}
