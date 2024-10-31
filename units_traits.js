@@ -1,5 +1,6 @@
 class UnitsTraits {
 	static onDpsCalc(unit, calc_dmg) {
+		// after bonus, before armor
 		switch (unit.blueprint.name) {
 			case 'Argent':
 				if (unit.unitConfig["High Energy"]) {
@@ -14,6 +15,7 @@ class UnitsTraits {
 	}
 
 	static onAttackDealt(unit, target, calc_dmg) {
+		// ATTACKER
 		switch (unit.blueprint.name) {
 			case 'Gaunt':
 				if (unit.unitConfig["Bouncing Bone Axes"]) {
@@ -37,6 +39,16 @@ class UnitsTraits {
 					target.changeHp(-calc_dmg);
 					target.changeHp(-calc_dmg);
 					console.log('Vector deals 3 attacks (two times extra ' + (calc_dmg).toFixed(2)+')')
+				}
+				break;
+		}
+
+		// TARGET
+		switch (target.blueprint.name) {
+			case 'Lancer':
+				if (unit.unitConfig["Mitigative Guard"]) {
+					calc_dmg -= 2;
+					if (calc_dmg < 0) calc_dmg = 0;
 				}
 				break;
 		}

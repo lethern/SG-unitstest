@@ -40,7 +40,7 @@ let gUnitsSpecials = {
 		configOptions: [
 			{ name: "Fortified Impaler", desc: "This units attacks deal area damage in a line.", value: true, implemented: false, compressionSymbol: 'AA' },
 			{ name: "Kinetic Redirection", desc: "On-Damaged: Increases this unit's attack and movement speed by 5% for 5 seconds. Max 50%.", value: false, implemented: false, compressionSymbol: 'AB' },
-			{ name: "Mitigative Guard", desc: "On-Damaged: Damage reduced by 2.", value: false, implemented: false, compressionSymbol: 'AC' },
+			{ name: "Mitigative Guard", desc: "On-Damaged: Damage reduced by 2.", value: false, compressionSymbol: 'AC' },
 		],
 		compressionSymbol: 'a4',
 	},
