@@ -52,7 +52,8 @@ class UnitsTraits {
 				}
 				break;
 		}
-		
+
+		target.changeHp(-calc_dmg)
 	}
 
 	static onRangeCalc(unit, attack) {

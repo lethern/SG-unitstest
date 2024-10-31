@@ -196,8 +196,6 @@ class Unit {
 			console.log(this.blueprint.name + ' dealt ' + calc_dmg + ' damage ' + `(raw: ${debug_calc_dmg1}, bonus: ${debug_bonus}, reduction: ${(1 - (1 / reduction)) * 100}%)`)
 
 			UnitsTraits.onAttackDealt(this, this.attackTarget, calc_dmg);
-
-			this.attackTarget.changeHp(-calc_dmg)
 		}
 		
 	}
