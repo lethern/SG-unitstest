@@ -195,7 +195,6 @@ class Serialization {
 		window.history.replaceState({}, '', url);
 
 		navigator.clipboard.writeText(window.location.href);
-		Serialization.parseShareLink();
 	}
 
 	static parseShareLink() {
