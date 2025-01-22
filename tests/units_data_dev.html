@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <style>
+	  .big{
+		  font-size: 24px;
+		  margin-top: 10px;
+	  }
+  </style>
+</head>
+<body>
+  <div id='list'/>
+  <script src="../units_data_json.js?v=1"></script>
+  <script src="../common_utils.js"></script>
+  <script>
+	  let factions = { 'v':[], 'i':[], 'c':[] };
+	  for(let it in gUnits){
+		  let unit = gUnits[it];
+		  factions[unit.faction].push(unit);
+	  }
+	  let fact_arr = [factions.v, factions.i, factions.c];
+	  fact_arr.forEach(f => f.sort());
+	  let list = document.getElementById('list')
+	  fact_arr.forEach((f,i) => {
+		  createDiv(list, (i==0? 'Vanguard' : (i==1? 'Infernal' : 'Celestial')), 'big')
+		  f.forEach(u => createDiv(list, u.displayName))
+	  });
+	  console.log('ok')
+  </script>
+  
+</body>
+</html>

@@ -1230,5 +1230,16 @@ const gUnits = {
 		health: 3000,
 		attacks: [],
 		armor_type: []
+	},
+	"Smudge": {
+		name: 'Smudge',
+		displayName: 'Smudge',
+		faction: 'o',
+		type: 'Ground',
+		speed: 0,
+		size: 3.75,
+		health: 3000,
+		attacks: [],
+		armor_type: []
 	}
 }

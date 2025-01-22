@@ -395,7 +395,7 @@ function renderUnitsDropdown(parent, factionSelect) {
 		case 'Vanguard': choices = getFactionUnits('v'); break;
 		case 'Infernal': choices = getFactionUnits('i'); break;
 		case 'Celestial': choices = getFactionUnits('c'); break;
-		case 'Other': choices = ['Weak dummy','Tough dummy'];
+		case 'Other': choices = ['Weak dummy','Tough dummy','Smudge'];
 			break;
 	}
 	

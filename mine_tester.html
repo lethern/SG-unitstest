@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+	<input type='button' value='pause' id='pause'></input>
+	<div id="clock"></div>
+    <div id="debug"></div>
+
+	<script src="player.js"></script>
+	<script src="worker.js"></script>
+    <script>
+		let slow_mode = false;
+		let semi_slow_mode= 1;
+		
+		let gInitialDelayPlayer = 3000;
+		let gPaused = 0;
+		
+		const ACTIONS = {
+			GO_MINING_LUMI: 1,
+			MINE_LUMI: 2,
+			RETURN_LUMI: 3,
+			WAIT: 4,
+		};
+		
+		const MINING_TIME = {
+			//MINING_LUMI: 1830,
+			//TRAVEL_OUTER: 1830,
+			//TRAVEL_INNER: 1070,
+			
+			//MINING_LUMI: 1510,
+			//TRAVEL_OUTER: 1745,
+			//TRAVEL_INNER: 960,
+//			MINING_LUMI: 1510,
+			TRAVEL_OUTER: 1750,
+			TRAVEL_INNER: 980,
+		};
+		
+		const UNITS = {
+			BOB: {
+				buildtime: 17,
+				speed: 3.5,
+				supply: 1,
+				luminite: 50,
+				health: 130,
+				attacks: [{
+					target: 'Ground',
+					damage: 8,
+					speed: 1.5,
+					range: 0.1,
+				}],
+			},
+		};
+		
+		const RESOURCES = {
+			LUMINITE: 0,
+			THERIUM: 1
+		};
+		
+		// class Player
+		
+		let gPlayers = [];
+		function getPlayer(n){
+			return gPlayers[n];
+		}
+		
+		
+		let gLuminites = [];
+		const MINE_STATUS = {
+			FREE: 0,
+			USED: 1,
+		};
+		class Luminite {
+			constructor(_id){
+				this.id = _id;
+				this.slotsState = new Array(4).fill(MINE_STATUS.FREE);
+				this.slotsWorkers = [];
+				this.waiting = [[], [], [], []];
+				this.signals = 0;
+			}
+			getSlotState(mineSpot) {
+				return this.slotsState[mineSpot];
+			}
+			changeSlot(mineSpot, status, opt_time) {
+				this.slotsState[mineSpot] = status;
+				if(status == MINE_STATUS.FREE && this.waiting[mineSpot].length){
+					let callback = this.waiting[mineSpot].shift();
+					callback(opt_time);
+					//next.signalMineReady();
+					this.signals ++;
+				}
+			}
+			addWaiting(mineSpot, callback){
+				this.waiting[mineSpot].push(callback);
+			}
+			
+			addWorker(mineSpot){
+				if(!this.slotsWorkers[mineSpot]) this.slotsWorkers[mineSpot] = 0;
+				this.slotsWorkers[mineSpot] ++;
+			}
+			miningTime(mineSpot){
+				switch(this.slotsWorkers[mineSpot]){
+					case 1: return 1500;
+					case 2: return 2000;
+					case 3: return 1500;
+					case 4: return 1500;
+				}
+			}
+			
+		}
+	
+		// class Worker
+		
+		function getMine(id){
+			return gLuminites[id];
+		}
+		function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+
+		/*
+		async function run(){
+			let init_time = 0; //new Date();
+			gPlayers[0] = new Player(0);
+			gLuminites[0] = new Luminite(0);
+			
+			gPlayers[0].startupInit(gLuminites[0].id, init_time);
+			
+			let time = init_time;
+			let clock = Math.round(time/1000);
+			
+			let sim_time = 6.5; // N minutes
+			while(true){
+				gPlayers.forEach(p => p.update(time));
+				
+				if(slow_mode){
+					debugPrint();
+					await sleep(1);
+				}
+				
+				//console.log(`${time} >= (${clock}+1) * 1000 = ${(clock+1) * 1000}`);
+				if(semi_slow_mode && time >= (clock+1) * 1000) {
+					document.getElementById('clock').innerHTML = time;
+					clock = Math.round(time/1000);
+					await sleep(1);
+				}
+				
+				if(time % (100) == 0){
+					debugPrint();
+				}
+				
+				if(time - init_time > sim_time* 60*1000) break;
+				if(!gPaused){
+					time += 1;
+				}else{
+					await sleep(1);
+				}
+			}
+			debugPrint();
+			gPlayers.forEach((p,i) => p.printDebug());
+		}
+		//*/
+		
+		//*
+		// measure mining
+		async function run_all(){
+			let init_time = 0; //new Date();
+			let minutes = 10;
+		
+			for(let i=1; i<=16; ++i){
+				let debugStr = `${i} workers`;
+				gPlayers[0] = new Player(0);
+				gLuminites[0] = new Luminite(0);
+				
+				gPlayers[0].workers =  Array(i).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+1) %4, init_time));
+				gPlayers.forEach(p => p.macro = ()=>{});
+				
+				await run_impl(minutes);
+				
+				console.log(debugStr+' '+(gPlayers[0].lumi/minutes).toFixed(1));
+				//gPlayers[0].printDebug();
+			}
+		}
+		
+		async function run(){
+			let init_time = 0; //new Date();
+			let minutes = 10;
+			
+			gPlayers[0] = new Player(0);
+			gLuminites[0] = new Luminite(0);
+			
+			//gPlayers[0].workers =  Array(5).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+1) %4, init_time));
+			gPlayers.forEach(p => p.macro = ()=>{});
+			
+			
+			
+			
+			//gPlayers[1] = new Player(1);
+			//gPlayers[2] = new Player(2);
+			//gPlayers[3] = new Player(3);
+			//gLuminites[1] = new Luminite(1);
+			//gLuminites[2] = new Luminite(2);
+			//gLuminites[3] = new Luminite(3);
+			//gPlayers[0].addWorkers(gLuminites[0].id, 8, init_time);
+			//gPlayers[0].workers =  Array(8).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, i < 2 ? (i+1) : (i%2 ? 0 : 3), init_time));
+			
+			// 1 in 1 out
+			//gPlayers[0].workers =  Array(4).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+3) %4, init_time));
+			// 1 in 2 out
+			//gPlayers[0].workers =  Array(6).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+3) %4, init_time));
+			// 2 in 1 out
+			//gPlayers[0].workers =  Array(6).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+1) %4, init_time));
+			
+			// 2 in 2 out
+			//gPlayers[0].workers =  Array(8).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, i %4, init_time));
+			// 2 in 3 out
+			//gPlayers[0].workers =  Array(10).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+3) %4, init_time));
+			// 3 in 2 out
+			//gPlayers[0].workers =  Array(10).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+1) %4, init_time));
+			// 2 in 4 out
+			//gPlayers[0].workers =  Array(12).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i<4 )?  (i%2 ? 0 : 3) : (i) %4, init_time));
+			// 3 in 3 out
+			//gPlayers[0].workers =  Array(12).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, i %4, init_time));
+			// 3 in 4 out
+			gPlayers[0].workers =  Array(14).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i+1) %4, init_time));
+			
+			// 4 in 3 out
+			//gPlayers[0].workers =  Array(14).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, i > 11 ? (i%2 ? 3 : 0) : i %4, init_time));
+			
+			// in (2+3)
+			//gPlayers[0].workers =  Array(5).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id,  (i%2) +1, init_time));
+			// 3 in 0 out
+			//gPlayers[0].workers =  Array(6).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id,  (i%2) +1, init_time));
+			// 1 in 3 out
+			//gPlayers[0].workers =  Array(8).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i<2 )?  (i%2)+1 : (i%2 ? 0 : 3), init_time));
+			
+			
+			//gPlayers[1].addWorkers(gLuminites[1].id, 10, init_time);
+			//gPlayers[2].addWorkers(gLuminites[2].id, 12, init_time);
+			//gPlayers[3].workers =  Array(10).fill(null).map((_,i) => new Worker(gPlayers[3].id, gLuminites[3].id, (i+3)%4, init_time));
+		
+			//gPlayers[0].workers =  Array(5).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i%2)+1, init_time));
+			//gPlayers[0].workers =  Array(5).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i%2) ? 0 : 3, init_time));
+			//gPlayers[0].workers =  Array(5).fill(null).map((_,i) => new Worker(gPlayers[0].id, gLuminites[0].id, (i%2) ? 1 : 2, init_time));
+			
+			await run_impl(minutes);
+			
+			console.log((gPlayers[0].lumi/minutes).toFixed(1));
+			gPlayers[0].printDebug();
+		}
+		
+		async function run_impl(minutes){
+			let start = 0;
+			let time = 0;
+			let slow_mode = false;
+			let semi_slow_mode= 0;
+			let clock = 0;
+			
+			while(true){
+				gPlayers.forEach(p => p.update(time));
+				
+				if(slow_mode){
+					debugPrint();
+					await sleep(1);
+				}
+				
+				if(semi_slow_mode && time >= (clock+1) * 1000) {
+					document.getElementById('clock').innerHTML = clock;
+					clock = Math.round(time/1000);
+					await sleep(1);
+				}
+				
+				//if(time - start > minutes* 60*1000) break;
+				if(time - start > minutes *60 *1000) break;
+				time += 1;
+			}
+			debugPrint(minutes);
+			//gPlayers.forEach((p,i) => p.printDebug());
+		}
+		//*/
+		
+		function debugPrint(minutes){
+			let string = '';
+			gPlayers.forEach(p => {
+				string += 'lumi: '+p.lumi + ', '+(p.lumi/minutes).toFixed(1)+'/min <br />';
+				let mine = gLuminites[p.id];
+				
+				let slots = [[], [], [], []];
+				p.workers.forEach(w => {
+					slots[w.mineSpot].push(printAction(w.action));
+				});
+				for(let i in slots){
+					string += 'slot '+i+', ' + (mine.getSlotState(i) == MINE_STATUS.FREE ? 'O' : 'M') + ', '+ slots[i].join(', ')+ '<br />'
+				}
+				//}).join(', ')+ '<br />';
+			});
+			string += 'MV '+gPlayers[0].workers[0].time_moving + ', MI '+gPlayers[0].workers[0].time_mining+', W '+gPlayers[0].workers[0].time_waiting+'<br/>'
+			document.getElementById('debug').innerHTML = string;
+		}
+		
+		function printAction(action){
+			switch(action){
+				case ACTIONS.GO_MINING_LUMI: return 'go'
+				case ACTIONS.MINE_LUMI: return 'mine'
+				case ACTIONS.RETURN_LUMI: return 'back'
+				case ACTIONS.WAIT: return 'wait'
+			}
+		}
+		function init(){
+			document.getElementById('pause').addEventListener('click', ()=>{
+				gPaused = !gPaused;
+				debugPrint();
+			});
+		}
+			
+		init();
+		run();
+    </script>
+
+</body>
+</html>

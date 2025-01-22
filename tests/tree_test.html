@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpha Unit Test Early Access Beta</title>
+  <style>
+    #main{
+		background-color: #f9f9fa;
+	}
+	.nodeBtn, .nodeSibling{
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+    .nodeBtn{
+		cursor: pointer;
+		margin-left: 5px;
+		font-family: 'Courier New';
+		font-size: 16px;
+		background-color: #e6e6fa;
+	}
+	.nodeBtn.expanded{
+		background-color: #c3cdff;
+	}
+	.nodeSibling{
+		font-family: Consolas;
+		background-color: #e7d2ff;
+		min-width: 50px;
+		margin-left: 20px;
+		padding: 0 3px;
+		border: #af9ebb solid 1px;
+		border-top: none;
+		border-radius: 3px;
+		cursor: pointer;
+		display: inline-block;
+	}
+	
+  </style>
+</head>
+<body>
+  <div id='main'></div>
+  <script src="../tree.js"></script>
+  <script>
+  
+initTest();
+function initTest(){
+	let main = document.getElementById('main');
+	let tree = new Tree();
+	let data = [{name:'a', list:[{name: '1'}, {name: '2'}]},{name:'b', list:[{name: '55'}]}, {name:'c', list: []}]
+	tree.render(main, data);
+	
+	tree.createSiblingNode({name: 'Command Center'}, tree.nodes[0]);
+	
+}
+  </script>
+</body>
+</html>
