@@ -7,7 +7,7 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         .container { margin-top: 30px; }
-        .button { padding: 10px; margin: 10px; font-size: 16px; cursor: pointer; }
+        .button { padding: 10px; margin: 10px; font-size: 16px; cursor: pointer; user-select: none; }
 
         .unitRow{
             padding: 5px 0;
@@ -34,17 +34,20 @@
 
     <script>
         let gUnitsDiv = document.getElementById("units");
+		let gUnits = [];
+		let gExtras = {};
 
 		class Resources{
 			constructor(){
-				this.storage = { "animus": 0 };
+				//this.storage = { "animus": 0 };
+				this.storage = { "animus": 10, "meatfarm": 10, "fiend": 5 };
 				this.mapping = {};
 			}
 
 			register(name, unit){
 				this.mapping[name] = unit;
             }
-			add(resource, mult){
+			add(resource, mult = 1){
 				for(let name in resource){
 					let amount = resource[name] * mult;
 					if(!this.storage[name]) this.storage[name] = 0;
@@ -93,11 +96,17 @@
         }
 
 		function gUpdate(){
-			units.forEach(unit => unit.updateUI());
+			gUnits.forEach(unit => unit.updateUI());
         }
 
 		function gProduce(){
-			units.forEach(unit => unit.produce());
+			gUnits.forEach(unit => unit.produce());
+		}
+
+		function gExtraStuff() {
+			if(!gExtras.tech && gResources.canAfford({"fiend": 10})){
+				addTech()
+            }
 		}
 
         class Unit{
@@ -142,9 +151,9 @@
 
 			}
 			canEnable(){
-				let result = true;
-				if(this.config.clickCost && !gResources.canAfford(this.config.clickCost)) result = false;
-				if(this.config.unlockCondition && this.config.unlockCondition.resources && !gResources.canAfford(this.config.unlockCondition.resources)) result = false;
+				let result = false;
+				if(this.config.clickCost && gResources.canAfford(this.config.clickCost)) result = true;
+				if(this.config.unlockCondition && this.config.unlockCondition.resources && gResources.canAfford(this.config.unlockCondition.resources)) result = true;
 				return result;
             }
 
@@ -173,7 +182,7 @@
 				gResources.add(this.config.addPerSecond, this.amount)
             }
 		}
-		let units = [];
+
 
 		const animusConfig = {
 			userName: "Animus",
@@ -181,8 +190,17 @@
 			btnLabel: "Spawn Animus",
 			addPerClick: {"animus": 1}
         }
-		units.push(new Unit(animusConfig, true));
+		gUnits.push(new Unit(animusConfig, true));
 
+		function addTech(){
+			let div = addDiv(gUnitsDiv, 'unitRow');
+			let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Fiend: 10");
+			gExtras.tech = { div, btn };
+			function advance(){
+				gResources.add({"tech": 1});
+				div.style.display = "none";
+			}
+        }
 		const meatFarmConfig = {
 			userName: "Meat Farm",
             resourceName: "meatfarm",
@@ -190,7 +208,7 @@
 			addPerClick: {"meatfarm": 1},
 			addPerSecond: {"felhog": 0.1},
 		}
-		units.push(new Unit(meatFarmConfig, true));
+		gUnits.push(new Unit(meatFarmConfig, true));
 
 		const FelhogConfig = {
 			userName: "Felhog",
@@ -198,7 +216,7 @@
 			addPerSecond: {"animus": 1},
 			unlockCondition: { resources: { "felhog": 1 }}
 		}
-		units.push(new Unit(FelhogConfig, false));
+		gUnits.push(new Unit(FelhogConfig, false));
 
 		const FiendConfig = {
 			userName: "Fiend",
@@ -207,7 +225,29 @@
 			addPerClick: {"fiend": 1},
             unlockCondition: { resources: { "meatfarm": 10 }}
 		}
-		units.push(new Unit(FiendConfig, false));
+		gUnits.push(new Unit(FiendConfig, false));
+
+		const NobleFelhogConfig = {
+			userName: "Noble Felhog",
+			resourceName: "noblefelhog",
+			clickCost: {"felhog": 20},
+			addPerClick: {"noblefelhog": 1},
+			unlockCondition: { resources: { "tech": 1 }}
+		}
+		gUnits.push(new Unit(NobleFelhogConfig, false));
+
+		const FelhogqueenConfig = {
+			userName: "Felhog Queen",
+			resourceName: "felhogqueen",
+			clickCost: {"noblefelhog": 10},
+			addPerClick: {"felhogqueen": 1},
+			addPerSecond: {"noblefelhog": 1},
+			unlockCondition: { resources: { "tech": 1, "noblefelhog": 1 }}
+		}
+		gUnits.push(new Unit(FelhogqueenConfig, false));
+
+
+
 		gUpdate();
 
 
@@ -217,28 +257,27 @@
 			if(_class) div.classList.add(_class);
 			return div;
 		}
-		function addSpan(parent, _class){
+		function addSpan(parent, _class, text){
 			let span = document.createElement("span");
 			parent.appendChild(span);
 			if(_class) span.classList.add(_class);
+			if(text) span.textContent = text;
 			return span;
         }
-		function addBtn(parent, onClick){
+		function addBtn(parent, onClick, text){
 			let btn = document.createElement('button');
 			parent.appendChild(btn);
 			btn.addEventListener('click', onClick);
+			if(text) btn.innerText = text;
 			return btn;
 		}
 
 		setInterval(() => {
 			gProduce();
 			gUpdate();
+			gExtraStuff();
 		}, 1000);
 
-        //setInterval(() => {
-        //    animus += drones; // Each drone produces 1 animus per second
-        //    updateUI();
-        //}, 1000);
     </script>
 </body>
 </html>
