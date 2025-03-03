@@ -3,281 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InfeClicker</title>
+    <title>InfeClicker (0.3.0.002)</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { margin-top: 30px; }
-        .button { padding: 10px; margin: 10px; font-size: 16px; cursor: pointer; user-select: none; }
+		body { font-family: Arial, sans-serif; text-align: center; }
+		.container { margin-top: 30px; }
+		.button { padding: 10px; margin: 10px; font-size: 16px; cursor: pointer; user-select: none; }
 
-        .unitRow{
-            padding: 5px 0;
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-        }
-        .unitLabel{
-            margin-right: 20px;
+		.unitRow{
+			padding: 5px 0;
+			font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+		}
+		.unitLabel{
+			margin-right: 20px;
 			user-select: none;
-        }
-        .unitInfo{
-            margin-left: 20px;
-            border-radius: 5px;
-            background-color: #badee1;
-            padding: 2px 4px;
+		}
+		.unitInfo{
+			margin-left: 20px;
+			border-radius: 5px;
+			background-color: #badee1;
+			padding: 2px 4px;
 			user-select: none;
-        }
+		}
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>InfeClicker</h1>
-        <div id="units"></div>
-    </div>
+<div class="container">
+    <h1>InfeClicker</h1>
+    <div id="units"></div>
+</div>
 
-    <script>
-        let gUnitsDiv = document.getElementById("units");
-		let gUnits = [];
-		let gExtras = {};
+<script>
+	let gUnitsDiv = document.getElementById("units");
+	let gUnits = [];
+	let gExtras = {};
 
-		class Resources{
-			constructor(){
-				//this.storage = { "animus": 0 };
-				this.storage = { "animus": 10, "meatfarm": 10, "fiend": 5 };
-				this.mapping = {};
-			}
+	class Resources{
+		constructor(){
+			//this.storage = { "animus": 0 };
+			this.storage = { "animus": 10, "meatfarm": 10, "fiend": 5 };
+			this.mapping = {};
+		}
 
-			register(name, unit){
-				this.mapping[name] = unit;
-            }
-			add(resource, mult = 1){
-				for(let name in resource){
-					let amount = resource[name] * mult;
-					if(!this.storage[name]) this.storage[name] = 0;
-					this.storage[name] += amount;
-
-					let mappedUnit = this.mapping[name];
-					if(mappedUnit && mappedUnit.amount != this.storage[name] ){
-						mappedUnit.updateAmount(this.storage[name]);
-					}
-				}
-            }
-			canAfford(resource){
-				let result = true;
-				for(let name in resource){
-					let amount = resource[name];
-					if((this.storage[name] || 0) < amount) result = false;
-				}
-                return result;
-			}
-			sub(resource){
-				for(let name in resource){
-					let amount = resource[name];
-					this.storage[name] -= amount;
-
-					let mappedUnit = this.mapping[name];
-					if(mappedUnit && mappedUnit.amount != this.storage[name] ){
-						mappedUnit.updateAmount(this.storage[name]);
-					}
-				}
-			}
-        }
-
-		let gResources = new Resources();
-
-		function printResource(resource, mult = 1){
-			if(!resource) return '';
-			let string = '';
+		register(name, unit){
+			this.mapping[name] = unit;
+		}
+		add(resource, mult = 1){
 			for(let name in resource){
 				let amount = resource[name] * mult;
-				if(string) string += ", ";
-				let amountStr = amount.toFixed(0);
-				if(amount < 1 && amount > 0) amountStr = amount.toFixed(1);
-				string += `${amountStr} ${name}`;
-			}
-			return string;
-        }
+				if(!this.storage[name]) this.storage[name] = 0;
+				this.storage[name] += amount;
 
-		function gUpdate(){
-			gUnits.forEach(unit => unit.updateUI());
-        }
-
-		function gProduce(){
-			gUnits.forEach(unit => unit.produce());
-		}
-
-		function gExtraStuff() {
-			if(!gExtras.tech && gResources.canAfford({"fiend": 10})){
-				addTech()
-            }
-		}
-
-        class Unit{
-			constructor(config, enabled){
-				this.userName = config.userName;
-				this.resourceName = config.resourceName;
-				this.config = config;
-				this.enabled = enabled;
-				this.amount = 0;
-
-                this.div = addDiv(gUnitsDiv, 'unitRow');
-				this.label = addSpan(this.div, 'unitLabel')
-                if(this.config.addPerClick)
-				    this.btn = addBtn(this.div, ()=>this.onClick());
-
-				this.infoPerSecond = addSpan(this.div, 'unitInfo')
-				this.infoPerSecond.style.display = "none";
-
-				gResources.register(this.resourceName, this);
-				if(!enabled){
-					this.div.style.display = "none";
-                }
-			}
-
-			enable(){
-				this.div.style.display = "block";
-				this.enabled = true;
-            }
-
-			updateAmount(amount){
-				this.amount = amount;
-				if(this.amount > 0 && !this.enabled){
-					this.enable();
+				let mappedUnit = this.mapping[name];
+				if(mappedUnit && mappedUnit.amount != this.storage[name] ){
+					mappedUnit.updateAmount(this.storage[name]);
 				}
-            }
-			onClick() {
-				if(gResources.canAfford(this.config.clickCost)){
-					gResources.sub(this.config.clickCost)
-					gResources.add(this.config.addPerClick, 1)
-					gUpdate();
+			}
+		}
+		canAfford(resource){
+			let result = true;
+			for(let name in resource){
+				let amount = resource[name];
+				if((this.storage[name] || 0) < amount) result = false;
+			}
+			return result;
+		}
+		sub(resource){
+			for(let name in resource){
+				let amount = resource[name];
+				this.storage[name] -= amount;
+
+				let mappedUnit = this.mapping[name];
+				if(mappedUnit && mappedUnit.amount != this.storage[name] ){
+					mappedUnit.updateAmount(this.storage[name]);
 				}
-
 			}
-			canEnable(){
-				let result = false;
-				if(this.config.clickCost && gResources.canAfford(this.config.clickCost)) result = true;
-				if(this.config.unlockCondition && this.config.unlockCondition.resources && gResources.canAfford(this.config.unlockCondition.resources)) result = true;
-				return result;
-            }
-
-			updateUI(){
-				if(!this.enabled){
-					if(this.canEnable()) this.enable();
-					else return;
-                }
-
-				this.label.textContent = `${this.userName}: ${this.amount.toFixed(0)}`;
-				let btnText = this.config.btnLabel || "Buy "+this.userName;
-				let cost = printResource(this.config.clickCost) || '';
-
-				if(this.btn){
-					let string = btnText;
-					if(cost) string += ` (${cost})`;
-					this.btn.innerText = string;
-                }
-				if(this.config.addPerSecond && this.amount > 0){
-					this.infoPerSecond.innerText = ` + ${printResource(this.config.addPerSecond, this.amount)}`;
-					this.infoPerSecond.style.display = "inline-block";
-                }
-            }
-			produce(){
-				if(!this.config.addPerSecond || !this.amount) return;
-				gResources.add(this.config.addPerSecond, this.amount)
-            }
 		}
+	}
 
+	let gResources = new Resources();
 
-		const animusConfig = {
-			userName: "Animus",
-            resourceName: "animus",
-			btnLabel: "Spawn Animus",
-			addPerClick: {"animus": 1}
-        }
-		gUnits.push(new Unit(animusConfig, true));
+	function printResource(resource, mult = 1){
+		if(!resource) return '';
+		let string = '';
+		for(let name in resource){
+			let amount = resource[name] * mult;
+			if(string) string += ", ";
+			let amountStr = amount.toFixed(0);
+			if(amount < 1 && amount > 0) amountStr = amount.toFixed(1);
+			string += `${amountStr} ${name}`;
+		}
+		return string;
+	}
 
-		function addTech(){
-			let div = addDiv(gUnitsDiv, 'unitRow');
-			let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Fiend: 10");
-			gExtras.tech = { div, btn };
-			function advance(){
-				gResources.add({"tech": 1});
-				div.style.display = "none";
+	function gUpdate(){
+		gUnits.forEach(unit => unit.updateUI());
+	}
+
+	function gProduce(){
+		gUnits.forEach(unit => unit.produce());
+	}
+
+	function gExtraStuff() {
+		if(!gExtras.tech && gResources.canAfford({"fiend": 10})){
+			addTech()
+		}
+	}
+
+	class Unit{
+		constructor(config, enabled){
+			this.userName = config.userName;
+			this.resourceName = config.resourceName;
+			this.config = config;
+			this.enabled = enabled;
+			this.amount = 0;
+
+			this.div = addDiv(gUnitsDiv, 'unitRow');
+			this.label = addSpan(this.div, 'unitLabel')
+			if(this.config.addPerClick)
+				this.btn = addBtn(this.div, ()=>this.onClick());
+
+			this.infoPerSecond = addSpan(this.div, 'unitInfo')
+			this.infoPerSecond.style.display = "none";
+
+			gResources.register(this.resourceName, this);
+			if(!enabled){
+				this.div.style.display = "none";
 			}
-        }
-		const meatFarmConfig = {
-			userName: "Meat Farm",
-            resourceName: "meatfarm",
-			clickCost: {"animus": 10},
-			addPerClick: {"meatfarm": 1},
-			addPerSecond: {"felhog": 0.1},
 		}
-		gUnits.push(new Unit(meatFarmConfig, true));
 
-		const FelhogConfig = {
-			userName: "Felhog",
-			resourceName: "felhog",
-			addPerSecond: {"animus": 1},
-			unlockCondition: { resources: { "felhog": 1 }}
+		enable(){
+			this.div.style.display = "block";
+			this.enabled = true;
 		}
-		gUnits.push(new Unit(FelhogConfig, false));
 
-		const FiendConfig = {
-			userName: "Fiend",
-			resourceName: "fiend",
-			clickCost: {"felhog": 1},
-			addPerClick: {"fiend": 1},
-            unlockCondition: { resources: { "meatfarm": 10 }}
+		updateAmount(amount){
+			this.amount = amount;
+			if(this.amount > 0 && !this.enabled){
+				this.enable();
+			}
 		}
-		gUnits.push(new Unit(FiendConfig, false));
+		onClick() {
+			if(gResources.canAfford(this.config.clickCost)){
+				gResources.sub(this.config.clickCost)
+				gResources.add(this.config.addPerClick, 1)
+				gUpdate();
+			}
 
-		const NobleFelhogConfig = {
-			userName: "Noble Felhog",
-			resourceName: "noblefelhog",
-			clickCost: {"felhog": 20},
-			addPerClick: {"noblefelhog": 1},
-			unlockCondition: { resources: { "tech": 1 }}
 		}
-		gUnits.push(new Unit(NobleFelhogConfig, false));
-
-		const FelhogqueenConfig = {
-			userName: "Felhog Queen",
-			resourceName: "felhogqueen",
-			clickCost: {"noblefelhog": 10},
-			addPerClick: {"felhogqueen": 1},
-			addPerSecond: {"noblefelhog": 1},
-			unlockCondition: { resources: { "tech": 1, "noblefelhog": 1 }}
+		canEnable(){
+			let result = false;
+			if(this.config.clickCost && gResources.canAfford(this.config.clickCost)) result = true;
+			if(this.config.unlockCondition && this.config.unlockCondition.resources && gResources.canAfford(this.config.unlockCondition.resources)) result = true;
+			return result;
 		}
-		gUnits.push(new Unit(FelhogqueenConfig, false));
+
+		updateUI(){
+			if(!this.enabled){
+				if(this.canEnable()) this.enable();
+				else return;
+			}
+
+			this.label.textContent = `${this.userName}: ${this.amount.toFixed(0)}`;
+			let btnText = this.config.btnLabel || "Buy "+this.userName;
+			let cost = printResource(this.config.clickCost) || '';
+
+			if(this.btn){
+				let string = btnText;
+				if(cost) string += ` (${cost})`;
+				this.btn.innerText = string;
+			}
+			if(this.config.addPerSecond && this.amount > 0){
+				this.infoPerSecond.innerText = ` + ${printResource(this.config.addPerSecond, this.amount)}`;
+				this.infoPerSecond.style.display = "inline-block";
+			}
+		}
+		produce(){
+			if(!this.config.addPerSecond || !this.amount) return;
+			gResources.add(this.config.addPerSecond, this.amount)
+		}
+	}
+
+
+	const animusConfig = {
+		userName: "Animus",
+		resourceName: "animus",
+		btnLabel: "Spawn Animus",
+		addPerClick: {"animus": 1}
+	}
+	gUnits.push(new Unit(animusConfig, true));
+
+	function addTech(){
+		let div = addDiv(gUnitsDiv, 'unitRow');
+		let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Fiend: 10");
+		gExtras.tech = { div, btn };
+		function advance(){
+			gResources.add({"tech": 1});
+			div.style.display = "none";
+		}
+	}
+	const meatFarmConfig = {
+		userName: "Meat Farm",
+		resourceName: "meatfarm",
+		clickCost: {"animus": 10},
+		addPerClick: {"meatfarm": 1},
+		addPerSecond: {"felhog": 0.1},
+	}
+	gUnits.push(new Unit(meatFarmConfig, true));
+
+	const FelhogConfig = {
+		userName: "Felhog",
+		resourceName: "felhog",
+		addPerSecond: {"animus": 1},
+		unlockCondition: { resources: { "felhog": 1 }}
+	}
+	gUnits.push(new Unit(FelhogConfig, false));
+
+	const FiendConfig = {
+		userName: "Fiend",
+		resourceName: "fiend",
+		clickCost: {"felhog": 1},
+		addPerClick: {"fiend": 1},
+		unlockCondition: { resources: { "meatfarm": 10 }}
+	}
+	gUnits.push(new Unit(FiendConfig, false));
+
+	const NobleFelhogConfig = {
+		userName: "Noble Felhog",
+		resourceName: "noblefelhog",
+		clickCost: {"felhog": 20},
+		addPerClick: {"noblefelhog": 1},
+		unlockCondition: { resources: { "tech": 1 }}
+	}
+	gUnits.push(new Unit(NobleFelhogConfig, false));
+
+	const FelhogqueenConfig = {
+		userName: "Felhog Queen",
+		resourceName: "felhogqueen",
+		clickCost: {"noblefelhog": 10},
+		addPerClick: {"felhogqueen": 1},
+		addPerSecond: {"noblefelhog": 1},
+		unlockCondition: { resources: { "tech": 1, "noblefelhog": 1 }}
+	}
+	gUnits.push(new Unit(FelhogqueenConfig, false));
 
 
 
+	gUpdate();
+
+
+	function addDiv(parent, _class){
+		let div = document.createElement("div");
+		parent.appendChild(div);
+		if(_class) div.classList.add(_class);
+		return div;
+	}
+	function addSpan(parent, _class, text){
+		let span = document.createElement("span");
+		parent.appendChild(span);
+		if(_class) span.classList.add(_class);
+		if(text) span.textContent = text;
+		return span;
+	}
+	function addBtn(parent, onClick, text){
+		let btn = document.createElement('button');
+		parent.appendChild(btn);
+		btn.addEventListener('click', onClick);
+		if(text) btn.innerText = text;
+		return btn;
+	}
+
+	setInterval(() => {
+		gProduce();
 		gUpdate();
+		gExtraStuff();
+	}, 1000);
 
-
-		function addDiv(parent, _class){
-			let div = document.createElement("div");
-			parent.appendChild(div);
-			if(_class) div.classList.add(_class);
-			return div;
-		}
-		function addSpan(parent, _class, text){
-			let span = document.createElement("span");
-			parent.appendChild(span);
-			if(_class) span.classList.add(_class);
-			if(text) span.textContent = text;
-			return span;
-        }
-		function addBtn(parent, onClick, text){
-			let btn = document.createElement('button');
-			parent.appendChild(btn);
-			btn.addEventListener('click', onClick);
-			if(text) btn.innerText = text;
-			return btn;
-		}
-
-		setInterval(() => {
-			gProduce();
-			gUpdate();
-			gExtraStuff();
-		}, 1000);
-
-    </script>
+</script>
 </body>
 </html>
