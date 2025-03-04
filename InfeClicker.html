@@ -312,7 +312,7 @@
 	const meatFarmConfig = {
 		userName: "Meat Farm",
 		resourceName: "meatfarm",
-		clickCost: { resources: {"shroud": 10}, multiplier: 1.5 },
+		clickCost: { resources: {"shroud": 10}, multiplier: 1.2 },
 		addPerClick: {"meatfarm": 1},
 		addPerSecond: {"felhog": 0.1},
 		unlockCondition: { resources: { "shroud": 20 }, message: "Boss! Shroud is works! We seeing meat farm next hill!"}
@@ -354,7 +354,7 @@
         clickCost: { resources: {"noblefelhog": 10} },
         addPerClick: {"felhogqueen": 1},
         addPerSecond: {"noblefelhog": 1},
-        unlockCondition: { resources: { "tech": 1, "noblefelhog": 5 }}
+        unlockCondition: { resources: { "tech": 1, "noblefelhog": 5 }, multiplier: 1.2}
     }
     gUnits.push(new Unit(FelhogqueenConfig, false));
 
