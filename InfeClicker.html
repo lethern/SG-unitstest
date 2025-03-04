@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InfeClicker (0.3.0.002)</title>
+    <title>InfeClicker</title>
     <style>
 		body { font-family: Arial, sans-serif; text-align: center; }
 		.container { margin-top: 30px; }
@@ -28,7 +28,8 @@
 </head>
 <body>
 <div class="container">
-    <h1>InfeClicker</h1>
+    <div style="padding-bottom: 15px; font-weight: bold; vertical-align: middle"><span style="font-size: 30px">InfeClicker </span>
+            <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">002</span><span style="font-size: 25px">)</span></div>
     <div id="units"></div>
 </div>
 
@@ -82,6 +83,8 @@
 
 	let gResources = new Resources();
 
+	let gResourceNames = {};
+
 	function printResource(resource, mult = 1){
 		if(!resource) return '';
 		let string = '';
@@ -90,7 +93,9 @@
 			if(string) string += ", ";
 			let amountStr = amount.toFixed(0);
 			if(amount < 1 && amount > 0) amountStr = amount.toFixed(1);
-			string += `${amountStr} ${name}`;
+
+			let name_output = gResourceNames[name] || name;
+			string += `${amountStr} ${name_output}`;
 		}
 		return string;
 	}
@@ -113,6 +118,8 @@
 		constructor(config, enabled){
 			this.userName = config.userName;
 			this.resourceName = config.resourceName;
+			gResourceNames[this.resourceName] = this.userName;
+
 			this.config = config;
 			this.enabled = enabled;
 			this.amount = 0;
