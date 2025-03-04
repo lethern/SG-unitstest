@@ -6,7 +6,17 @@
     <title>InfeClicker</title>
     <style>
 		body { font-family: Arial, sans-serif; text-align: center; }
-		.container { margin-top: 30px; }
+        .title{ user-select: none; }
+		.container { margin-top: 30px; width: 80vw;	height: 95vh; margin: auto; }
+		.felages .container {
+			box-shadow: inset 1px 1px 36px -12px rgba(107, 39, 0, 1);
+
+			border: double 1em transparent;
+			border-radius: 30px;
+			background-image: linear-gradient(#fff4e2, #fff3bd), linear-gradient(#a55300, #8f0000);
+			background-origin: border-box;
+			background-clip: content-box, border-box;
+        }
 		button { cursor: pointer; user-select: none; }
 
 		.unitRow{
@@ -24,19 +34,63 @@
 			padding: 2px 4px;
 			user-select: none;
 		}
+        .felages .unitInfo{
+			background-color: #dbd4a7 !important;
+            box-shadow: 0px 0px 9px -4px #c5927a !important;
+		}
+        .message{
+			position: relative;
+			padding: 10px;
+			margin: 5px 0;
+			background: #fff7e6;
+			color: #561c22;
+			border: 1px solid #c5b8b0;
+			border-radius: 5px;
+			display: inline-flex;
+			justify-content: space-between;
+			align-items: center;
+
+			opacity: 0;
+            transform: translateY(-10px);
+			transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+		.felages .message{
+			color: #fefff6 !important;
+			background: #bd9a52 !important;
+			box-shadow: inset 1px 1px 36px -12px rgba(107, 39, 0, 1) !important;
+            border: none !important;
+        }
+        .messageContent{
+
+        }
+        .messageClose{
+			margin-left: 15px;
+			background: #575757;
+			color: white;
+			border: none;
+			padding: 5px 10px;
+			cursor: pointer;
+			border-radius: 3px;
+        }
+		.felages .messageClose{
+		background: #7f5050;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="padding-bottom: 15px; font-weight: bold; vertical-align: middle"><span style="font-size: 30px">InfeClicker </span>
-            <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">002</span><span style="font-size: 25px">)</span></div>
+    <div class="title" style="padding: 15px 0; font-weight: bold; vertical-align: middle"><span style="font-size: 30px">InfeClicker </span>
+        <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">003</span><span style="font-size: 25px">)</span></div>
     <div id="units"></div>
+    <div id="msgs"></div>
 </div>
 
 <script>
 	let gUnitsDiv = document.getElementById("units");
+	let gMsgsDiv = document.getElementById("msgs");
 	let gUnits = [];
 	let gExtras = {};
+	let gPaused = false;
 
 	class Resources{
 		constructor(){
@@ -109,11 +163,31 @@
 	}
 
 	function gExtraStuff() {
-		if(!gExtras.tech && gResources.canAfford({"fiend": 10})){
+		if(!gExtras.tech && gResources.canAfford({"animus": 100})){
 			addTech()
 		}
 	}
 
+	function gShowMessage(message){
+		let wrapper = addDiv(gMsgsDiv)
+		let div = addDiv(wrapper, "message")
+		let content = addSpan(div, "messageContent", message)
+        addBtn(div, ()=>{ gMsgsDiv.removeChild(wrapper); }, "X", "messageClose")
+		setTimeout(() => {
+			div.style.opacity = "1";
+			div.style.transform = "translateY(0)";
+		}, 10);
+    }
+
+	function calculateCostResources(cost, level){
+		let result = {};
+		for(let name in cost.resources){
+			let amount = cost.resources[name];
+			if(level && cost.multiplier) amount *= Math.pow(cost.multiplier, level);
+			result[name] = amount;
+		}
+		return result;
+    }
 	class Unit{
 		constructor(config, enabled){
 			this.userName = config.userName;
@@ -141,26 +215,37 @@
 		enable(){
 			this.div.style.display = "block";
 			this.enabled = true;
+			if(this.config.unlockCondition && this.config.unlockCondition.message){
+				gShowMessage(this.config.unlockCondition.message);
+            }
 		}
 
 		updateAmount(amount){
 			this.amount = amount;
-			if(this.amount > 0 && !this.enabled){
-				this.enable();
-			}
 		}
 		onClick() {
-			if(gResources.canAfford(this.config.clickCost)){
-				gResources.sub(this.config.clickCost)
+			let works = true;
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+
+				if(gResources.canAfford(resources)) {
+					gResources.sub(resources)
+				}else{
+					works = false;
+                }
+            }
+			if(works){
 				gResources.add(this.config.addPerClick, 1)
 				gUpdate();
 			}
-
 		}
 		canEnable(){
 			let result = false;
-			if(this.config.clickCost && gResources.canAfford(this.config.clickCost)) result = true;
-			if(this.config.unlockCondition && this.config.unlockCondition.resources && gResources.canAfford(this.config.unlockCondition.resources)) result = true;
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+			    if(gResources.canAfford(resources)) result = true;
+            }
+			if(this.config.unlockCondition && this.config.unlockCondition.resources) result = gResources.canAfford(this.config.unlockCondition.resources);
 			return result;
 		}
 
@@ -172,7 +257,12 @@
 
 			this.label.textContent = `${this.userName}: ${this.amount.toFixed(0)}`;
 			let btnText = this.config.btnLabel || "Buy "+this.userName;
-			let cost = printResource(this.config.clickCost) || '';
+
+			let cost = '';
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+				cost = printResource(resources);
+            }
 
 			if(this.btn){
 				let string = btnText;
@@ -190,69 +280,83 @@
 		}
 	}
 
-
-	const animusConfig = {
-		userName: "Animus",
-		resourceName: "animus",
-		btnLabel: "Spawn Animus",
-		addPerClick: {"animus": 1}
-	}
-	gUnits.push(new Unit(animusConfig, true));
-
 	function addTech(){
 		let div = addDiv(gUnitsDiv, 'unitRow');
-		let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Fiend: 10");
+		let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Animus: 200");
 		gExtras.tech = { div, btn };
 		function advance(){
 			gResources.add({"tech": 1});
 			div.style.display = "none";
+			document.body.classList.add("felages");
 		}
 	}
+
+	const shroudConfig = {
+		userName: "Shroud",
+		resourceName: "shroud",
+		btnLabel: "Spread Shroud",
+		addPerClick: {"shroud": 1}
+	}
+	gUnits.push(new Unit(shroudConfig, true));
+
+	const ShroudstoneConfig = {
+		userName: "Shroudstone",
+		resourceName: "shroudstone",
+		addPerSecond: {"shroud": 1},
+		clickCost: { resources: {"shroud": 10}, multiplier: 1.1 },
+		addPerClick: {"shroudstone": 1},
+		unlockCondition: { resources: { "shroud": 5 }}
+	}
+	gUnits.push(new Unit(ShroudstoneConfig, false));
+
 	const meatFarmConfig = {
 		userName: "Meat Farm",
 		resourceName: "meatfarm",
-		clickCost: {"animus": 10},
+		clickCost: { resources: {"shroud": 10}, multiplier: 1.5 },
 		addPerClick: {"meatfarm": 1},
 		addPerSecond: {"felhog": 0.1},
+		unlockCondition: { resources: { "shroud": 20 }, message: "Boss! Shroud is works! We seeing meat farm next hill!"}
 	}
-	gUnits.push(new Unit(meatFarmConfig, true));
+	gUnits.push(new Unit(meatFarmConfig, false));
+
+
 
 	const FelhogConfig = {
 		userName: "Felhog",
 		resourceName: "felhog",
-		addPerSecond: {"animus": 1},
+		addPerSecond: {"animus": 0.1},
 		unlockCondition: { resources: { "felhog": 1 }}
 	}
 	gUnits.push(new Unit(FelhogConfig, false));
 
-	const FiendConfig = {
-		userName: "Fiend",
-		resourceName: "fiend",
-		clickCost: {"felhog": 1},
-		addPerClick: {"fiend": 1},
-		unlockCondition: { resources: { "meatfarm": 10 }}
+	const AnimusConfig = {
+		userName: "Animus",
+		resourceName: "animus",
+		//clickCost: { resources: {"felhog": 1} },
+		//addPerClick: {"fiend": 1},
+		unlockCondition: { resources: { "animus": 10 }, message: "This energy gives us lots of strong!"}
 	}
-	gUnits.push(new Unit(FiendConfig, false));
+	gUnits.push(new Unit(AnimusConfig, false));
 
 	const NobleFelhogConfig = {
 		userName: "Noble Felhog",
 		resourceName: "noblefelhog",
-		clickCost: {"felhog": 20},
+		clickCost: { resources: {"felhog": 10} },
 		addPerClick: {"noblefelhog": 1},
-		unlockCondition: { resources: { "tech": 1 }}
+		unlockCondition: { resources: { "tech": 1 }, message: "We be advanced now!"}
 	}
 	gUnits.push(new Unit(NobleFelhogConfig, false));
 
-	const FelhogqueenConfig = {
-		userName: "Felhog Queen",
-		resourceName: "felhogqueen",
-		clickCost: {"noblefelhog": 10},
-		addPerClick: {"felhogqueen": 1},
-		addPerSecond: {"noblefelhog": 1},
-		unlockCondition: { resources: { "tech": 1, "noblefelhog": 1 }}
-	}
-	gUnits.push(new Unit(FelhogqueenConfig, false));
 
+    const FelhogqueenConfig = {
+        userName: "Felhog Queen",
+        resourceName: "felhogqueen",
+        clickCost: { resources: {"noblefelhog": 10} },
+        addPerClick: {"felhogqueen": 1},
+        addPerSecond: {"noblefelhog": 1},
+        unlockCondition: { resources: { "tech": 1, "noblefelhog": 5 }}
+    }
+    gUnits.push(new Unit(FelhogqueenConfig, false));
 
 
 	gUpdate();
@@ -271,18 +375,21 @@
 		if(text) span.textContent = text;
 		return span;
 	}
-	function addBtn(parent, onClick, text){
+	function addBtn(parent, onClick, text, _class){
 		let btn = document.createElement('button');
 		parent.appendChild(btn);
 		btn.addEventListener('click', onClick);
+		if(_class) btn.classList.add(_class);
 		if(text) btn.innerText = text;
 		return btn;
 	}
 
 	setInterval(() => {
-		gProduce();
-		gUpdate();
-		gExtraStuff();
+		if(!gPaused){
+			gProduce();
+			gUpdate();
+			gExtraStuff();
+        }
 	}, 1000);
 
 </script>
