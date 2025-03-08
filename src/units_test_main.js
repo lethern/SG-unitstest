@@ -226,6 +226,8 @@ class Serialization {
 	}
 
 	static deserialize(save) {
+		if (!gSetupSelects.configArrayTop) gSetupSelects.configArrayTop = [];
+		if (!gSetupSelects.configArrayBottom) gSetupSelects.configArrayBottom = [];
 		Serialization.deserializeFaction(save);
 		Serialization.deserializeUnits(save);
 		checkUnitAbilities();
@@ -326,6 +328,8 @@ class Serialization {
 	}
 }
 function checkConfig() {
+	if (!gSetupSelects.configArrayTop) gSetupSelects.configArrayTop = [];
+	if (!gSetupSelects.configArrayBottom) gSetupSelects.configArrayBottom = [];
 	gConfig.unitConfigPlayer0 = getConfigData(gSetupSelects.configArrayTop)
 	gConfig.unitConfigPlayer1 = getConfigData(gSetupSelects.configArrayBottom)
 	/**
@@ -405,8 +409,6 @@ function renderUnitsDropdown(parent, factionSelect) {
 }
 
 function checkUnitAbilities() {
-	if (!gSetupSelects.configArrayTop) gSetupSelects.configArrayTop = [];
-	if (!gSetupSelects.configArrayBottom) gSetupSelects.configArrayBottom = [];
 	let unitsMap = {};
 	for (let { select } of gSetupSelects.top) {
 		let name = select.value;
