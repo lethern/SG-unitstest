@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    
+
     <title>InfeClicker</title>
     <style>
 		body { font-family: Arial, sans-serif; text-align: center; }
@@ -21,7 +21,13 @@
 			background-origin: border-box;
 			background-clip: content-box, border-box;
         }
-		button { cursor: pointer; user-select: none; }
+		button {
+            cursor: pointer;
+            user-select: none;
+			border: 1px solid #adadad;
+			border-radius: 4px;
+			/*transition: background 0.2s ease, transform 0.1s ease;*/
+        }
 
 		.unitRow{
 			padding: 5px 0;
@@ -79,27 +85,102 @@
 		.felages .messageClose{
 		background: #7f5050;
         }
+
+        #tabs_container{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-bottom: 10px;
+        }
+        #tabs{
+            min-width: 500px;
+            padding: 6px 20px;
+            background: #f2f5f7;
+			box-shadow: 0px 0px 12px -2px #5f9dbd;
+			display: flex;
+			align-items: flex-start;
+			border-radius: 6px;
+			user-select: none;
+        }
+		#tabs > span {
+            cursor: pointer;
+			background: #d1efff;
+			font-family: 'Consolas';
+			font-size: 1.1em;
+			padding: 2px 6px;
+			border-radius: 3px;
+			margin-right: 10px;
+        }
+		#tabs > span.active {
+			cursor: pointer;
+			background: #098acd;
+			color: #ffffff;
+			font-family: 'Consolas';
+			font-size: 1.1em;
+			padding: 2px 6px;
+			border-radius: 3px;
+		}
+        .hidden{
+            display: none;
+        }
+        .afordable{
+			border: 1px solid #9daf98;
+            background-color: #d2ffcc;
+        }
+        #msgs{
+			user-select: none;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="title" style="padding: 15px 0; font-weight: bold; vertical-align: middle"><span style="font-size: 30px">InfeClicker </span>
-        <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">003</span><span style="font-size: 25px">)</span></div>
-    <div id="units"></div>
+        <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">004</span><span style="font-size: 25px">)</span></div>
+
+    <div id="tabs_container" style="display: none">
+        <div id="tabs"></div>
+    </div>
+
+    <div id="main">
+        <div id="units"></div>
+    </div>
+
+    <div id="tech" class="hidden">
+
+    </div>
+
     <div id="msgs"></div>
+
 </div>
 
 <script>
 	let gUnitsDiv = document.getElementById("units");
 	let gMsgsDiv = document.getElementById("msgs");
+	let gTabsContainerDiv = document.getElementById("tabs_container");
+	let gTabsDiv = document.getElementById("tabs");
+	let gTechDiv = document.getElementById("tech");
 	let gUnits = [];
+	let gTechs = [];
 	let gExtras = {};
 	let gPaused = false;
+	let gDev = false;
+
+	setup();
+
+	function setup(){
+		const params = new URLSearchParams(window.location.search);
+
+		if (params.has('dev')) {
+			gDev = true;
+		}
+    }
 
 	class Resources{
+		static resourceNames = {};
 		constructor(){
 			this.storage = { "animus": 0 };
-			//this.storage = { "animus": 10, "meatfarm": 10, "fiend": 5 };
+			if(gDev)
+			    this.storage = { "animus": 300, "meatfarm": 100, "shroudstone": 35 };
 			this.mapping = {};
 		}
 
@@ -109,7 +190,12 @@
 		add(resource, mult = 1){
 			for(let name in resource){
 				let amount = resource[name] * mult;
-				if(!this.storage[name]) this.storage[name] = 0;
+				if(this.storage[name] === undefined){
+					if(amount > 0){
+						gFirstBuilt(name);
+					}
+					this.storage[name] = 0;
+                }
 				this.storage[name] += amount;
 
 				let mappedUnit = this.mapping[name];
@@ -137,29 +223,32 @@
 				}
 			}
 		}
+		get(resourceName){
+			return this.storage[resourceName];
+        }
+
+		static printResource(resource, mult = 1){
+			if(!resource) return '';
+			let string = '';
+			for(let name in resource){
+				let amount = resource[name] * mult;
+				if(string) string += ", ";
+				let amountStr = amount.toFixed(0);
+				if(amount < 1 && amount > 0) amountStr = amount.toFixed(1);
+
+				let name_output = Resources.resourceNames[name] || name;
+				string += `${amountStr} ${name_output}`;
+			}
+			return string;
+		}
 	}
 
 	let gResources = new Resources();
 
-	let gResourceNames = {};
-
-	function printResource(resource, mult = 1){
-		if(!resource) return '';
-		let string = '';
-		for(let name in resource){
-			let amount = resource[name] * mult;
-			if(string) string += ", ";
-			let amountStr = amount.toFixed(0);
-			if(amount < 1 && amount > 0) amountStr = amount.toFixed(1);
-
-			let name_output = gResourceNames[name] || name;
-			string += `${amountStr} ${name_output}`;
-		}
-		return string;
-	}
 
 	function gUpdate(){
 		gUnits.forEach(unit => unit.updateUI());
+		gTechs.forEach(tech => tech.updateUI());
 	}
 
 	function gProduce(){
@@ -167,7 +256,7 @@
 	}
 
 	function gExtraStuff() {
-		if(!gExtras.tech && gResources.canAfford({"animus": 100})){
+		if(!gExtras.tech && gResources.canAfford({"animus": 75})){
 			addTech()
 		}
 	}
@@ -183,6 +272,22 @@
 		}, 10);
     }
 
+	let gLastTime = undefined;
+	let timeFormatter = new Intl.DateTimeFormat('pl-PL', {
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit'
+	})
+	function gFirstBuilt(unitName){
+		let time = Date.now();
+		let dt = 0;
+		if(gLastTime){
+			dt = time- gLastTime;
+        }
+		gLastTime = time;
+		console.log("first " + unitName + " on " + (timeFormatter.format(time)) + ", "+ (dt/1000));
+    }
+
 	function calculateCostResources(cost, level){
 		let result = {};
 		for(let name in cost.resources){
@@ -192,15 +297,136 @@
 		}
 		return result;
     }
+
+
+	class TechUnit{
+		constructor(config, enabled){
+			this.userName = config.userName;
+			this.resourceName = config.resourceName;
+			Resources.resourceNames[this.resourceName] = this.userName;
+
+			this.config = config;
+			this.enabled = enabled;
+			this.amount = (gResources.get(this.resourceName)) || 0;
+
+			this.div = addDiv(gTechDiv, 'unitRow');
+			this.label = addSpan(this.div, 'unitLabel')
+			if(this.config.addPerClick)
+				this.btn = addBtn(this.div, ()=>this.onClick());
+
+			gResources.register(this.resourceName, this);
+			if(!enabled){
+				this.div.style.display = "none";
+			}
+		}
+
+		onClick() {
+			let works = true;
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+
+				if(gResources.canAfford(resources)) {
+					gResources.sub(resources)
+				}else{
+					works = false;
+				}
+			}
+			if(works){
+				this.onClickPerTech();
+				//gResources.add(this.config.addPerClick, 1)
+				gUpdate();
+			}
+		}
+
+		onClickPerTech() {
+			switch(this.resourceName){
+                case "t_felages":{
+					gResources.add(this.resourceName, 1)
+                    this.amount += 1;
+					this.btn.disabled = true;
+
+					gResources.add({"tech": 1});
+					document.body.classList.add("felages");
+                }break;
+			}
+		}
+
+		updateUI(){
+			if(!this.enabled){
+				if(this.canEnable()) this.enable();
+				else return;
+			}
+
+			let customLabel = this.getCustomLabel();
+			if(customLabel){
+				this.label.textContent = customLabel;
+			}else{
+				this.label.textContent = `${this.userName}: ${this.amount.toFixed(0)}`;
+            }
+
+			let btnText = this.config.btnLabel || "Buy ";//+this.userName;
+
+			let cost = '';
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+				cost = Resources.printResource(resources);
+			}
+
+			if(this.btn){
+				let string = btnText;
+				if(cost) string += ` (${cost})`;
+				this.btn.innerText = string;
+
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+				if(!this.btn.disabled && gResources.canAfford(resources)) {
+					this.btn.classList.add("afordable")
+				}else{
+					this.btn.classList.remove("afordable")
+                }
+			}
+		}
+
+		enable(){
+			if(this.enabled) return;
+			this.div.style.display = "block";
+			this.enabled = true;
+			if(this.config.unlockCondition && this.config.unlockCondition.message){
+				gShowMessage(this.config.unlockCondition.message);
+			}
+		}
+
+		canEnable(){
+			let result = false;
+			if(this.config.clickCost){
+				let resources = calculateCostResources(this.config.clickCost, this.amount);
+				if(gResources.canAfford(resources)) result = true;
+			}
+			if(this.config.unlockCondition && this.config.unlockCondition.resources) result = gResources.canAfford(this.config.unlockCondition.resources);
+			return result;
+		}
+
+
+		getCustomLabel() {
+			switch(this.resourceName){
+				case "t_felages":{
+					if(this.amount == 1){
+                        return "Middle FelAges: done"
+                    }else{
+						return "Middle FelAges: "
+                    }
+				}break;
+			}
+		}
+	}
 	class Unit{
 		constructor(config, enabled){
 			this.userName = config.userName;
 			this.resourceName = config.resourceName;
-			gResourceNames[this.resourceName] = this.userName;
+			Resources.resourceNames[this.resourceName] = this.userName;
 
 			this.config = config;
 			this.enabled = enabled;
-			this.amount = 0;
+			this.amount = (gResources.get(this.resourceName)) || 0;
 
 			this.div = addDiv(gUnitsDiv, 'unitRow');
 			this.label = addSpan(this.div, 'unitLabel')
@@ -217,6 +443,7 @@
 		}
 
 		enable(){
+			if(this.enabled) return;
 			this.div.style.display = "block";
 			this.enabled = true;
 			if(this.config.unlockCondition && this.config.unlockCondition.message){
@@ -260,21 +487,30 @@
 			}
 
 			this.label.textContent = `${this.userName}: ${this.amount.toFixed(0)}`;
-			let btnText = this.config.btnLabel || "Buy "+this.userName;
+			let btnText = this.config.btnLabel || "Buy 1 ";//+this.userName;
 
 			let cost = '';
 			if(this.config.clickCost){
 				let resources = calculateCostResources(this.config.clickCost, this.amount);
-				cost = printResource(resources);
+				cost = Resources.printResource(resources);
             }
 
 			if(this.btn){
 				let string = btnText;
 				if(cost) string += ` (${cost})`;
 				this.btn.innerText = string;
+
+				if(this.config.clickCost){
+					let resources = calculateCostResources(this.config.clickCost, this.amount);
+					if(gResources.canAfford(resources)) {
+						this.btn.classList.add("afordable")
+					}else{
+						this.btn.classList.remove("afordable")
+					}
+                }
 			}
 			if(this.config.addPerSecond && this.amount > 0){
-				this.infoPerSecond.innerText = ` + ${printResource(this.config.addPerSecond, this.amount)}`;
+				this.infoPerSecond.innerText = ` + ${Resources.printResource(this.config.addPerSecond, this.amount)}`;
 				this.infoPerSecond.style.display = "inline-block";
 			}
 		}
@@ -284,16 +520,63 @@
 		}
 	}
 
+	class Tabs{
+		static activeTab = undefined;
+		static tabsData = {};
+
+		static addTab(tabName){
+			if(Tabs.activeTab === undefined) {
+				gTabsContainerDiv.style.display = '';
+				Tabs.addTabImpl('Main', 'main')
+				Tabs.setActiveTab('Main');
+			}
+			switch(tabName){
+				case "tech":{
+					Tabs.addTabImpl('Tech', 'tech')
+				}break;
+			}
+		}
+
+		static addTabImpl(name, tabDivId){
+			let btn = addSpan(gTabsDiv, 'tabTitle', name)
+			btn.addEventListener('click', () =>{
+				Tabs.setActiveTab(name);
+			});
+			let tab = Tabs.tabsData[name] = {}
+			tab.btn = btn;
+			tab.content = document.getElementById(tabDivId)
+			//let div = addDiv(wrapper, "message")
+			//let content = addSpan(div, "messageContent", message)
+			//addBtn(div, ()=>{ gMsgsDiv.removeChild(wrapper); }, "X", "messageClose")
+		}
+		static setActiveTab(name){
+			if(Tabs.activeTab) Tabs.deselectTab(Tabs.activeTab);
+			Tabs.activeTab = name;
+			let tab = Tabs.tabsData[name];
+			tab.btn.classList.add('active');
+			tab.content.classList.remove('hidden');
+		}
+		static deselectTab(name){
+			let tab = Tabs.tabsData[name];
+			tab.btn.classList.remove('active');
+			tab.content.classList.add('hidden');
+		}
+    }
+
+
+
 	function addTech(){
 		let div = addDiv(gUnitsDiv, 'unitRow');
-		let btn = addBtn(div, ()=>advance(), "Advance to Middle FelAges (Animus: 200");
+		let btn = addBtn(div, ()=>advance(), "Build FelHall (Animus: 100)");
 		gExtras.tech = { div, btn };
 		function advance(){
 			gResources.add({"tech": 1});
+			Tabs.addTab('tech');
+			gResources.sub({"animus": 100});
 			div.style.display = "none";
-			document.body.classList.add("felages");
 		}
 	}
+
 
 	const shroudConfig = {
 		userName: "Shroud",
@@ -316,7 +599,7 @@
 	const meatFarmConfig = {
 		userName: "Meat Farm",
 		resourceName: "meatfarm",
-		clickCost: { resources: {"shroud": 10}, multiplier: 1.2 },
+		clickCost: { resources: {"shroud": 20}, multiplier: 1.1 },
 		addPerClick: {"meatfarm": 1},
 		addPerSecond: {"felhog": 0.1},
 		unlockCondition: { resources: { "shroud": 20 }, message: "Boss! Shroud is works! We seeing meat farm next hill!"}
@@ -347,7 +630,7 @@
 		resourceName: "noblefelhog",
 		clickCost: { resources: {"felhog": 10} },
 		addPerClick: {"noblefelhog": 1},
-		unlockCondition: { resources: { "tech": 1 }, message: "We be advanced now!"}
+		unlockCondition: { resources: { "tech": 2 }, message: "We be advanced now!"}
 	}
 	gUnits.push(new Unit(NobleFelhogConfig, false));
 
@@ -355,12 +638,21 @@
     const FelhogqueenConfig = {
         userName: "Felhog Queen",
         resourceName: "felhogqueen",
-        clickCost: { resources: {"noblefelhog": 10} },
+        clickCost: { resources: {"noblefelhog": 20}, multiplier: 1.2 },
         addPerClick: {"felhogqueen": 1},
         addPerSecond: {"noblefelhog": 1},
-        unlockCondition: { resources: { "tech": 1, "noblefelhog": 5 }, multiplier: 1.2}
+        unlockCondition: { resources: { "tech": 2, "noblefelhog": 10 }}
     }
     gUnits.push(new Unit(FelhogqueenConfig, false));
+
+
+	gTechs.push(new TechUnit({
+		userName: "Advance to Middle FelAges",//  (Animus: 100
+		resourceName: "t_felages",
+		clickCost: { resources: {"animus": 200}, multiplier: 1 },
+		addPerClick: {},
+		unlockCondition: { resources: { "tech": 1 }}
+    }, true))
 
 
 	gUpdate();
