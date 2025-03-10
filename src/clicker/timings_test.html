@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>InfeClicker</title>
+
+    <link rel="stylesheet" href="basic.css" type="text/css">
+</head>
+
+<body x-data="mainApp">
+<div class="container">
+    <div class="title"><span style="font-size: 30px">InfeClicker </span>
+        <span style="font-size: 25px">(0.3.0.</span><span style="font-size: 18px">004</span><span style="font-size: 25px">)</span></div>
+
+<!--    <button @click="$store.tabsState.toggleTabsVisible()">Show Tabs</button>-->
+<!--    <button @click="$store.tabsState.enableTab('Test')">Show test</button>-->
+
+    <button @click="AlpineObject('tabs').toggleTabsVisible()">Show Tabs</button>
+    <button @click="AlpineObject('tabs').enableTab('Test')">Show test</button>
+
+    <div id="tabs" x-data="tabs" x-show="tabsVisible" x-transition>
+
+        <div id="tabs_content">
+            <template x-for="([tabName, tab], index) in Object.entries(tabs)" :key="index">
+                <button
+                        :class="{ 'active': tabName === activeTab }"
+                        @click="setActiveTab(tabName)"
+                        x-show="tab.enabled">
+                    <span x-text="tab.name || tabName"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
+    <div id="main" x-show="AlpineObject('tabs').activeTab === 'Main'">
+        <div id="clickerUnits" x-data="clickerUnits">
+
+            <template x-for="(visual, index) in units" :key="index" class="unitRow">
+                <div class="unitRow">
+                    <span x-text="visual.config.userName"></span>
+                </div>
+            </template>
+<!--
+            <div x-for="([tabName, tab], index) in Object.entries($refs.tabs.tabs)" :key="index" class="unitRow">
+                <label class="unitLabel"></label>
+
+                <button
+                        :class=""
+                        @click="unitParent.onClick()"
+                        x-show="visible">
+                    <span x-text="tab.name || tabName"></span>
+                </button>
+
+            </div>
+-->
+
+        </div>
+    </div>
+
+    <div id="tech" x-show="AlpineObject('tabs').activeTab === 'Tech'">
+        tech
+    </div>
+
+    <div id="msgs" x-show="AlpineObject('tabs').activeTab === 'Test'">
+        test
+    </div>
+
+</div>
+
+
+
+<script src="timings_test_visual.js"></script>
+<script src="timings_test_main.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2" defer></script> -->
+<script src="alpinejs@3.x.x.min.js"></script>
+
+</body>
+</html>
