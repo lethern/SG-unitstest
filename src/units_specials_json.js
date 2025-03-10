@@ -3,7 +3,7 @@
 //	ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 // second character from
 //	0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
-// Units: starts from a0, last used: "aN"
+// Units: starts from a0, last used: "aR"
 // Config options: starts from A0
 let gUnitsSpecials = {
 	"Argent": {
@@ -197,6 +197,21 @@ let gUnitsSpecials = {
 			{ name: "Mass Infiltration", desc: "", value: false, implemented: false, compressionSymbol: 'B9' },
 		],
 		compressionSymbol: 'aN',
+	},
+	"Weak dummy": {
+		configOptions: [
+		],
+		compressionSymbol: 'aO',
+	},
+	"Tough dummy": {
+		configOptions: [
+		],
+		compressionSymbol: 'aP',
+	},
+	"Smudge": {
+		configOptions: [
+		],
+		compressionSymbol: 'aR',
 	}
 	/*
 		configOptions: [
