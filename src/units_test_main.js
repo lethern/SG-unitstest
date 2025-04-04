@@ -152,7 +152,7 @@ function setupComplete(){
 		let s = unit.size || 1.5;
 
 		for (let i = 0; i < _count; ++i) {
-			gMapUnits.push(new ClickerUnit(0, name, posX, posY, gConfig.unitConfigPlayer0));
+			gMapUnits.push(new Unit(0, name, posX, posY, gConfig.unitConfigPlayer0));
 			posX += s * 1.05;
 			if (posX > 15) {
 				posX = startingX;
@@ -174,7 +174,7 @@ function setupComplete(){
 		let s = unit.size || 1.5;
 
 		for (let i = 0; i < _count; ++i) {
-			gMapUnits.push(new ClickerUnit(1, name, posX, posY, gConfig.unitConfigPlayer1));
+			gMapUnits.push(new Unit(1, name, posX, posY, gConfig.unitConfigPlayer1));
 			posX += s * 1.05;
 			if (posX > 15) {
 				posX = startingX;
