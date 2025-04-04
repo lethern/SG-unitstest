@@ -2,4 +2,5 @@
 /.vscode
 /node_modules
 /obj
-/src/_arch
+/.idea
+/InfeClicker.html
